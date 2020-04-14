@@ -1,7 +1,5 @@
-# Title
-Drawreader: Piping and instrumentation drawing reader
+# PIDreader: Piping and instrumentation drawing reader
 
-## Header
 - Author: Jesus Gazol jgaz@
 - Core Technologies: python, deep learning, vision, P&ID, graph databases
 
@@ -15,6 +13,11 @@ The idea here is to build an AI system that can learn to read a significant corp
 a synthetic set of annotated data, produced by the system itself and increased by augmentation.
  The resulting representation of the diagram will be a graph that then could be exported to the DEXPI standard 
  specification (see references)
+
+
+## Status
+
+This is currently a side project that has just started, if you want to collaborate just ping me in Slack.
 
 ## Description
 
