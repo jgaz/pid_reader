@@ -1,4 +1,4 @@
-## 
+##
 
 ## GPU, Tensorflow in FC31
 
@@ -18,7 +18,3 @@ wget http://developer.download.nvidia.com/compute/cuda/10.2/Prod/local_installer
 sudo sh cuda_10.2.89_440.33.01_linux.run
 
 This fails GCC version issues, only supports 8.2, wait till available?
-
-
-
-
