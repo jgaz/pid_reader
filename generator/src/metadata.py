@@ -25,7 +25,9 @@ class SymbolStorage:
         if self.data is None:
             with open(self.symbols_metadata_file, "rb") as f_in:
                 symbols = pickle.load(f_in)
-            self.data = pd.DataFrame(data=symbols, index=[""])
+            self.data = pd.DataFrame(
+                data=symbols, columns=["name", "family", "description"]
+            )
         return self.data
 
     def get_families(self) -> List[str]:
