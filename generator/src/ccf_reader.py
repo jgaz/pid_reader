@@ -8,7 +8,7 @@ from typing import Tuple, List
 logger = logging.getLogger(__name__)
 
 
-def parse_ccf_file(filename: str) -> List[Tuple[str, str, str]]:
+def parse_ccf_file(filename: str) -> List[Tuple[str, ...]]:
     symbols = {}
     with open(filename, "r") as f_in:
         for line in f_in:
@@ -25,8 +25,8 @@ def parse_ccf_file(filename: str) -> List[Tuple[str, str, str]]:
 
 
 def remove_bad_ccf_symbol_family(
-    symbol_list: List[Tuple[str, str, str]]
-) -> List[Tuple[str, str, str]]:
+    symbol_list: List[Tuple[str, ...]]
+) -> List[Tuple[str, ...]]:
     bad_symbol_family = [
         re.compile(r"^EU-.*"),
         re.compile(r"^UK-.*"),

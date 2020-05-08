@@ -12,7 +12,7 @@ from shutil import copyfile
 logger = logging.getLogger()
 
 
-def find_symbol_file(symbol_name: str) -> Union[str, bool]:
+def find_symbol_file(symbol_name: str) -> str:
     path = check_output(
         f"find {DATA_PATH}/symbol_libraries/official -name {symbol_name}.dwg".split(" ")
     )
@@ -20,7 +20,7 @@ def find_symbol_file(symbol_name: str) -> Union[str, bool]:
         return path.strip().decode()
     else:
         logger.debug(f"Cannot find file for: {symbol_name}")
-    return False
+    raise Exception("File not found")
 
 
 def collect_dwg_file(file_path):
@@ -30,7 +30,7 @@ def collect_dwg_file(file_path):
     copyfile(file_path, destination_path)
 
 
-def dxf_to_png(symbols: List[Tuple[str, str, str]]):
+def dxf_to_png(symbols: List[Tuple[str, ...]]):
     # This needs to be run in a terminal, or to have the newest librecad installed in the system
     # command = f"librecad dxf2pdf -a -k {DATA_PATH}/symbol_libraries/dxf/*.dxf"
     # check_call(command.split(" "))

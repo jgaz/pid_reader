@@ -1,8 +1,8 @@
 import os
 import pickle
+import pandas as pd
 from dataclasses import dataclass
 from typing import Tuple, List
-import pandas as pd
 from config import METADATA_PATH
 
 
@@ -16,6 +16,7 @@ class SymbolData:
     name: str
     family: str
     description: str
+    matter: str
 
 
 class SymbolStorage:
@@ -31,7 +32,7 @@ class SymbolStorage:
             )
             raise e
 
-    def save(self, symbols: List[Tuple[str, str, str]]):
+    def save(self, symbols: List[Tuple[str, ...]]):
         with open(self.symbols_metadata_file, "wb") as f_out:
             pickle.dump(symbols, f_out)
 
@@ -40,7 +41,7 @@ class SymbolStorage:
             with open(self.symbols_metadata_file, "rb") as f_in:
                 symbols = pickle.load(f_in)
             self.data = pd.DataFrame(
-                data=symbols, columns=["name", "family", "description"]
+                data=symbols, columns=["name", "family", "description", "matter"]
             )
         return self.data
 
@@ -53,8 +54,17 @@ class SymbolStorage:
     def get_families(self) -> List[str]:
         return list(self.data.family.unique())
 
-    def get_symbols_by_family(self, symbol_family: str) -> List[SymbolData]:
-        df_filtered = self.data[self.data["family"] == symbol_family]
+    def get_matters(self) -> List[str]:
+        return list(self.data.matter.unique())
+
+    def get_symbols_by_family(self, matter: str, family: str) -> List[SymbolData]:
+        df_filtered = self.data.loc[
+            (self.data.matter == matter) & (self.data.family == family)
+        ]
+        return self._pandas_to_symbol_data(df_filtered)
+
+    def get_symbols_by_matter(self, matter: str) -> List[SymbolData]:
+        df_filtered = self.data.loc[(self.data.matter == matter)]
         return self._pandas_to_symbol_data(df_filtered)
 
     def get_dataframe(self):

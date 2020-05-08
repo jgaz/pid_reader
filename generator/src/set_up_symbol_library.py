@@ -2,12 +2,15 @@
     Set up the symbol library used for training the network
 """
 import argparse
+import logging
 
 from cad_converter import find_symbol_file, collect_dwg_file, dxf_to_png
 from ccf_reader import parse_ccf_file
 from metadata import SymbolStorage
 
+
 if __name__ == "__main__":
+    logger = logging.getLogger(__name__)
     parser = argparse.ArgumentParser(
         description="Create the symbol library used for the generator"
     )
@@ -22,12 +25,19 @@ if __name__ == "__main__":
 
     if args.ccf_filename:
         symbols = parse_ccf_file(args.ccf_filename[0])
-        for symbol_name, _symbol_family, _symbol_info in symbols:
-            symbol_file = find_symbol_file(symbol_name)
-            if symbol_file:
+        symbols_with_path = []
+        for symbol in symbols:
+            symbol_name = symbol[0]
+            try:
+                symbol_file = find_symbol_file(symbol_name)
                 collect_dwg_file(symbol_file)
+                file_path_split = symbol_file.split("/")
+                if file_path_split[-4] == "Blocks":
+                    symbols_with_path.append(symbol + (file_path_split[-3],))
+            except Exception as e:
+                logger.error(e)
         storage = SymbolStorage()
-        storage.save(symbols)
+        storage.save(symbols_with_path)
 
     elif args.cad_conversion:
         storage = SymbolStorage()
