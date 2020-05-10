@@ -5,10 +5,10 @@ import argparse
 import os
 from dataclasses import dataclass
 from random import randint, shuffle
-from typing import List, Tuple
+from typing import Tuple
 
-from PIL import Image, ImageFont, ImageDraw
-from config import DATA_PATH, DIAGRAM_PATH, FONT_PATH, PNG_SYMBOL_PATH
+from PIL import Image
+from config import DATA_PATH, DIAGRAM_PATH, PNG_SYMBOL_PATH
 from metadata import SymbolStorage
 
 

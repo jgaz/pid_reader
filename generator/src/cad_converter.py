@@ -3,7 +3,7 @@ Convert CAD pictures into PNGs
 """
 import logging
 import os
-from typing import Union, Tuple, List
+from typing import Tuple, List
 from config import DATA_PATH
 from subprocess import check_output, check_call
 from shutil import copyfile
@@ -43,15 +43,15 @@ def dxf_to_png(symbols: List[Tuple[str, ...]]):
         symbol_name = symbol[0]
         pdf_name = os.path.join(pdf_dir, f"{symbol_name}.pdf")
         if os.path.isfile(pdf_name):
-            png_file = os.path.join(png_dir, f"{symbol_name}_150.png")
+            png_file = os.path.join(png_dir, f"{symbol_name}_225.png")
             check_call(
-                f"convert -density 150 {pdf_name} -colorspace gray -threshold 99% -type bilevel -quality 100 {png_file}".split(
+                f"convert -density 225 {pdf_name} -colorspace gray -threshold 99% -type bilevel -quality 100 {png_file}".split(
                     " "
                 )
             )
-            png_file = os.path.join(png_dir, f"{symbol_name}_300.png")
+            png_file = os.path.join(png_dir, f"{symbol_name}_500.png")
             check_call(
-                f"convert -density 300 {pdf_name} -colorspace gray -threshold 99% -type bilevel -quality 100 {png_file}".split(
+                f"convert -density 500 {pdf_name} -colorspace gray -threshold 99% -type bilevel -quality 100 {png_file}".split(
                     " "
                 )
             )
