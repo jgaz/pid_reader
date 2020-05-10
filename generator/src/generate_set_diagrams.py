@@ -3,21 +3,27 @@ Generates a set of diagrams
 """
 import argparse
 import os
+import string
 from dataclasses import dataclass
-from random import randint, shuffle
-from typing import Tuple
+from enum import Enum
+from random import randint, shuffle, choice
+from typing import Tuple, Optional
 
 from PIL import Image
-from config import DATA_PATH, DIAGRAM_PATH, PNG_SYMBOL_PATH
+from PIL import ImageDraw
+from PIL import ImageFont
+from config import DATA_PATH, DIAGRAM_PATH, PNG_SYMBOL_PATH, FONT_PATH
 from metadata import SymbolStorage
 
 
 @dataclass
 class TextBox:
-    x: int
-    y: int
-    chars: int
+    x: float
+    y: float
+    lines: int
+    chars: str
     size: int
+    orientation: int = 0
 
 
 @dataclass
@@ -29,7 +35,71 @@ class GenericSymbol:
     size_w: int = 0
     full_text: str = ""
     text_boxes: Tuple[TextBox, ...] = ()
-    orientation: str = ""
+    orientation: int = 0
+
+
+class TextBoxPosition(Enum):
+    TOP = "top"
+    BOTTOM = "bottom"
+    RIGHT = "right"
+    LEFT = "left"
+    CENTER = "center"
+
+
+def inject_text(
+    symbol: GenericSymbol, diagram_image: Image.Image
+) -> Tuple[GenericSymbol, Image.Image]:
+    text_positions = [
+        TextBoxPosition.TOP,
+        TextBoxPosition.BOTTOM,
+        TextBoxPosition.RIGHT,
+    ]
+    for text_position in text_positions:
+        symbol.text_boxes += (generate_text_box(text_position),)
+    draw = ImageDraw.Draw(diagram_image)
+
+    for text_box in symbol.text_boxes:
+        font = ImageFont.truetype(os.path.join(FONT_PATH, "font3.ttf"), text_box.size)
+        draw.text(
+            (
+                text_box.x * symbol.size_w + symbol.x,
+                text_box.y * symbol.size_h + symbol.y,
+            ),
+            text_box.chars,
+            fill="black",
+            font=font,
+        )
+    return symbol, diagram_image
+
+
+def generate_text_box(
+    type: TextBoxPosition = TextBoxPosition.TOP, orientation: int = 0
+) -> Optional[TextBox]:
+    lines = randint(0, 3)
+    letters = string.ascii_uppercase
+    chars = ""
+    size = 15
+    for _ in range(lines):  # Generate between 1 and 3 lines of text
+        chars += "".join(choice(letters) for _ in range(5, 15)) + "\n"
+    if type == TextBoxPosition.TOP:
+        return TextBox(
+            x=0.0,
+            y=-0.2 * lines,
+            lines=lines,
+            chars=chars,
+            size=size,
+            orientation=orientation,
+        )
+    elif type == TextBoxPosition.BOTTOM:
+        return TextBox(
+            x=0.0, y=1, lines=lines, chars=chars, size=size, orientation=orientation
+        )
+    elif type == TextBoxPosition.RIGHT:
+        return TextBox(
+            x=1.0, y=0.2, lines=lines, chars=chars, size=size, orientation=orientation
+        )
+    else:
+        return None
 
 
 def inject_symbol(symbol: GenericSymbol, original_image: Image):
@@ -41,7 +111,7 @@ def inject_symbol(symbol: GenericSymbol, original_image: Image):
 
 def generate_diagram(diagram_matter: str):
     number_of_symbols = randint(50, 100)
-    img = Image.open(os.path.join(DATA_PATH, "diagram_template.png"))
+    image_diagram = Image.open(os.path.join(DATA_PATH, "diagram_template.png"))
     img_out_filename = os.path.join(DIAGRAM_PATH, "NewDiagram.png")
 
     symbol_st = SymbolStorage()
@@ -51,19 +121,16 @@ def generate_diagram(diagram_matter: str):
         symbols = symbol_st.get_symbols_by_matter(symbol_st.get_matters()[0])
     shuffle(symbols)
 
-    # draw = ImageDraw.Draw(img)
-    # font = ImageFont.truetype(os.path.join(FONT_PATH, "font2.ttf"), 12)
-    # draw.text((0, 20), "Sample Text", fill="black", font=font)
-
     diagram_symbols = []
 
     for i in range(number_of_symbols):
         symbol = symbols[i % len(symbols)]
         coords = (randint(0, 5000), randint(0, 3500))
         symbol_generic = GenericSymbol(symbol.name, coords[0], coords[1])
-        inject_symbol(symbol_generic, img)
+        inject_symbol(symbol_generic, image_diagram)
+        inject_text(symbol_generic, image_diagram)
         diagram_symbols.append(symbol)
-        img.save(img_out_filename)
+        image_diagram.save(img_out_filename)
     return diagram_symbols
 
 
