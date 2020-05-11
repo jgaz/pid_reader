@@ -7,3 +7,5 @@ FONT_PATH = os.path.join(DATA_PATH, "fonts")
 METADATA_PATH = os.path.join(DATA_PATH, "metadata")
 
 PNG_SYMBOL_PATH = os.path.join(DATA_PATH, "symbol_libraries", "png")
+
+SYMBOL_DEBUG = True
