@@ -3,15 +3,16 @@ Generates a set of diagrams
 """
 import argparse
 import os
+from pprint import pprint
 from random import randint, shuffle
 from PIL import Image
 from config import DATA_PATH, DIAGRAM_PATH
 from metadata import SymbolStorage
-from symbol import GenericSymbol, SymbolGenerator, CenterTextBoxManager
+from symbol import GenericSymbol, SymbolGenerator, SymbolConfiguration
 
 
 def generate_diagram(diagram_matter: str):
-    number_of_symbols = randint(50, 100)
+    number_of_symbols = randint(100, 200)
     image_diagram = Image.open(os.path.join(DATA_PATH, "diagram_template.png"))
     img_out_filename = os.path.join(DIAGRAM_PATH, "NewDiagram.png")
 
@@ -23,7 +24,7 @@ def generate_diagram(diagram_matter: str):
     shuffle(symbols)
 
     diagram_symbols = []
-    ctbm = CenterTextBoxManager()
+    ctbm = SymbolConfiguration()
     symbol_generator = SymbolGenerator(ctbm=ctbm)
     for i in range(number_of_symbols):
         symbol = symbols[i % len(symbols)]
@@ -31,7 +32,7 @@ def generate_diagram(diagram_matter: str):
         symbol_generic = GenericSymbol(symbol.name, coords[0], coords[1])
         symbol_generator.inject_symbol(symbol_generic, image_diagram)
         symbol_generator.inject_text(symbol_generic, image_diagram)
-        diagram_symbols.append(symbol)
+        diagram_symbols.append(symbol_generic)
         image_diagram.save(img_out_filename)
     return diagram_symbols
 
@@ -54,4 +55,4 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     symbols_used = generate_diagram(args.diagram_matter[0])
-    print(symbols_used)
+    pprint(symbols_used)

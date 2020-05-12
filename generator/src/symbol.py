@@ -19,6 +19,8 @@ class TextBox:
     chars: str
     size: int
     orientation: int = 0
+    size_h: int = 0
+    size_w: int = 0
 
 
 @dataclass
@@ -39,6 +41,7 @@ class CenterTextBoxConfig:
     max_lines: int
     x: float
     y: float
+    resol: int = 1
 
 
 class TextBoxPosition(Enum):
@@ -49,7 +52,7 @@ class TextBoxPosition(Enum):
     CENTER = "center"
 
 
-class CenterTextBoxManager:
+class SymbolConfiguration:
     CSV_FILE_PATH = os.path.join(DATA_PATH, "metadata", "center_text_config.csv")
     symbol_configuration: Dict[str, CenterTextBoxConfig] = {}
 
@@ -70,9 +73,10 @@ class CenterTextBoxManager:
 
 
 class SymbolGenerator:
-    ctbm: CenterTextBoxManager
+    ctbm: SymbolConfiguration
+    DEFAULT_TEXT_SIZE = 20
 
-    def __init__(self, ctbm: CenterTextBoxManager):
+    def __init__(self, ctbm: SymbolConfiguration):
         self.ctbm = ctbm
 
     def inject_text(
@@ -102,12 +106,20 @@ class SymbolGenerator:
                 fill="black",
                 font=font,
             )
+            text_box.size_w, text_box.size_h = draw.multiline_textsize(
+                text_box.chars, font=font
+            )
         return symbol, diagram_image
 
     def inject_symbol(self, symbol: GenericSymbol, original_image: Image):
         symbol_image = Image.open(
-            os.path.join(PNG_SYMBOL_PATH, f"{symbol.name}.png"), "r"
+            os.path.join(PNG_SYMBOL_PATH, f"{symbol.name}_225.png"), "r"
         )
+        text_box_config = self.ctbm.get_config(symbol)
+        if text_box_config and text_box_config.resol == 2:
+            symbol_image = Image.open(
+                os.path.join(PNG_SYMBOL_PATH, f"{symbol.name}_500.png"), "r"
+            )
         original_image.paste(symbol_image, (symbol.x, symbol.y))
         symbol.size_w = symbol_image.size[0]
         symbol.size_h = symbol_image.size[1]
@@ -118,7 +130,7 @@ class SymbolGenerator:
         lines = randint(0, 3)
         letters = string.ascii_uppercase
         chars = ""
-        size = 15
+        size = SymbolGenerator.DEFAULT_TEXT_SIZE
         for _ in range(lines):  # Generate between 1 and 3 lines of text
             chars += "".join(choice(letters) for _ in range(5, 15)) + "\n"
 
@@ -172,19 +184,18 @@ class SymbolGenerator:
         elif type == TextBoxPosition.CENTER:
             lines = 0
             chars = ""
+            x = 0.2
+            y = 0.2
             text_box_config = self.ctbm.get_config(symbol)
             if text_box_config:
                 lines = text_box_config.max_lines
+                x = text_box_config.x
+                y = text_box_config.y
 
             for _ in range(lines):  # Generate between 1 and 3 lines of text
                 chars += "".join(choice(letters) for _ in range(4, 7)) + "\n\n"
             return TextBox(
-                x=0.2,
-                y=0.2,
-                lines=lines,
-                chars=chars,
-                size=size,
-                orientation=orientation,
+                x=x, y=y, lines=lines, chars=chars, size=size, orientation=orientation,
             )
         else:
             return None

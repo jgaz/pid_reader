@@ -3,7 +3,7 @@ Convert CAD pictures into PNGs
 """
 import logging
 import os
-from typing import Tuple, List
+from typing import List, Dict
 from config import DATA_PATH
 from subprocess import check_output, check_call
 from shutil import copyfile
@@ -30,7 +30,10 @@ def collect_dwg_file(file_path):
     copyfile(file_path, destination_path)
 
 
-def dxf_to_png(symbols: List[Tuple[str, ...]]):
+def dxf_to_png(symbols: List[Dict[str, str]]):
+    """
+    'name': 'STSF014', 'family': 'Fire fighting equipment', 'description': 'WHEELED EXTINGUISHER', 'matter': 'S-Safety'
+    """
     # This needs to be run in a terminal, or to have the newest librecad installed in the system
     # command = f"librecad dxf2pdf -a -k {DATA_PATH}/symbol_libraries/dxf/*.dxf"
     # check_call(command.split(" "))
@@ -40,18 +43,18 @@ def dxf_to_png(symbols: List[Tuple[str, ...]]):
     png_dir = f"{DATA_PATH}/symbol_libraries/png/"
 
     for symbol in symbols:
-        symbol_name = symbol[0]
+        symbol_name = symbol["name"]
         pdf_name = os.path.join(pdf_dir, f"{symbol_name}.pdf")
         if os.path.isfile(pdf_name):
             png_file = os.path.join(png_dir, f"{symbol_name}_225.png")
             check_call(
-                f"convert -density 225 {pdf_name} -colorspace gray -threshold 99% -type bilevel -quality 100 {png_file}".split(
+                f"convert -density 225 {pdf_name} -colorspace gray -threshold 99% -type bilevel -quality 100 -trim +repage {png_file}".split(
                     " "
                 )
             )
             png_file = os.path.join(png_dir, f"{symbol_name}_500.png")
             check_call(
-                f"convert -density 500 {pdf_name} -colorspace gray -threshold 99% -type bilevel -quality 100 {png_file}".split(
+                f"convert -density 600 {pdf_name} -colorspace gray -threshold 99% -type bilevel -quality 100 -trim +repage {png_file}".split(
                     " "
                 )
             )
