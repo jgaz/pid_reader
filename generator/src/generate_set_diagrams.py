@@ -14,7 +14,8 @@ from symbol import GenericSymbol, SymbolGenerator, SymbolConfiguration
 def generate_diagram(diagram_matter: str):
     number_of_symbols = randint(100, 200)
     possible_orientation = [90]
-    image_diagram = Image.open(os.path.join(DATA_PATH, "diagram_template.png"))
+    # image_diagram = Image.open(os.path.join(DATA_PATH, "diagram_template.png"))
+    image_diagram = Image.new("LA", (5000, 3500), 255)
     img_out_filename = os.path.join(DIAGRAM_PATH, "NewDiagram.png")
 
     symbol_st = SymbolStorage()
@@ -39,9 +40,9 @@ def generate_diagram(diagram_matter: str):
             symbol.name, coords[0], coords[1], orientation=orientation
         )
         symbol_generator.inject_symbol(symbol_generic, image_diagram)
-        symbol_generator.inject_text(symbol_generic, image_diagram)
         diagram_symbols.append(symbol_generic)
-        image_diagram.save(img_out_filename)
+    image_diagram = image_diagram.convert("1")
+    image_diagram.save(img_out_filename)
     return diagram_symbols
 
 

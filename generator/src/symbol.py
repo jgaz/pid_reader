@@ -1,11 +1,12 @@
 import os
 import string
+import time
 from dataclasses import dataclass
 from enum import Enum
 from random import randint, choice
 from typing import Tuple, Optional, Dict
 import pandas as pd
-from PIL import Image
+from PIL import Image, ImageOps
 from PIL import ImageDraw
 from PIL import ImageFont
 from config import PNG_SYMBOL_PATH, FONT_PATH, SYMBOL_DEBUG, DATA_PATH
@@ -84,7 +85,7 @@ class SymbolGenerator:
         self.ctbm = ctbm
 
     def inject_text(
-        self, symbol: GenericSymbol, diagram_image: Image.Image
+        self, symbol: GenericSymbol, diagram_image: Image.Image, offset: Tuple[int, int]
     ) -> Tuple[GenericSymbol, Image.Image]:
         text_positions = [
             TextBoxPosition.TOP,
@@ -101,35 +102,85 @@ class SymbolGenerator:
             font = ImageFont.truetype(
                 os.path.join(FONT_PATH, self.DEFAULT_TEXT_FONT), text_box.size
             )
-            text_abs_coords = (
-                text_box.x * symbol.size_w + symbol.x,
-                text_box.y * symbol.size_h + symbol.y,
+            text_coords = (
+                text_box.x * symbol.size_w + offset[0],
+                text_box.y * symbol.size_h + offset[1],
             )
-            draw.text(text_abs_coords, text_box.chars, fill="black", font=font)
+            draw.text(text_coords, text_box.chars, fill=0, font=font)
             text_box.size_w, text_box.size_h = draw.multiline_textsize(
                 text_box.chars, font=font
             )
-            text_box.x = text_abs_coords[0]
-            text_box.y = text_abs_coords[1]
+            # Set the relative coords for the text box
+            text_box.x, text_box.y = text_coords
         return symbol, diagram_image
 
     def inject_symbol(self, symbol: GenericSymbol, original_image: Image):
-
         text_box_config = self.ctbm.get_config(symbol)
         image_quality_prefix = 225
         if text_box_config and text_box_config.resol == 2:
             image_quality_prefix = 500
+        assemble_image = Image.new("L", (400, 400), 255)
+
         symbol_image = Image.open(
             os.path.join(PNG_SYMBOL_PATH, f"{symbol.name}_{image_quality_prefix}.png"),
             "r",
         )
+        offset = (100, 100)
+        assemble_image.paste(symbol_image, offset)
+        symbol.size_w, symbol.size_h = symbol_image.size
+        self.inject_text(symbol, assemble_image, offset)
 
-        if symbol.orientation:
-            symbol_image.rotate(symbol.orientation, expand=True).crop()
+        if symbol.orientation > 0:
+            assemble_image = assemble_image.rotate(symbol.orientation, expand=True)
 
-        original_image.paste(symbol_image, (symbol.x, symbol.y))
-        symbol.size_w = symbol_image.size[0]
-        symbol.size_h = symbol_image.size[1]
+        # assemble_image.show()
+        # time.sleep(10)
+        # We invert the symbol and create a mask (all white in the image is now the mask)
+        inverted_image = ImageOps.invert(assemble_image)
+        assemble_image.putalpha(inverted_image)
+
+        original_image.paste(assemble_image, (symbol.x, symbol.y), mask=inverted_image)
+        self.recalculate_positions(symbol, offset)
+
+        # Test out positioning reported
+        draw = ImageDraw.Draw(original_image)
+        box = (
+            (symbol.x, symbol.y),
+            (symbol.x + symbol.size_w, symbol.y),
+            (symbol.x + symbol.size_w, symbol.y + symbol.size_h),
+            (symbol.x, symbol.y + symbol.size_h),
+        )
+        draw.polygon(box, outline="blue")
+
+        for text_box in symbol.text_boxes:
+            box2 = (
+                (text_box.x, text_box.y),
+                (text_box.x + text_box.size_w, text_box.y),
+                (text_box.x + text_box.size_w, text_box.y + text_box.size_h),
+                (text_box.x, text_box.y + text_box.size_h),
+            )
+            draw.polygon(box2, outline="blue")
+
+    def recalculate_positions(self, symbol: GenericSymbol, offset: Tuple[int, int]):
+        if symbol.orientation == 90:
+            symbol.y += 300 - symbol.size_w
+            symbol.x += offset[0]
+            symbol.size_h, symbol.size_w = (symbol.size_w, symbol.size_h)
+
+            for text_box in symbol.text_boxes:
+                old_y = int(text_box.y)
+                # old_x = int(text_box.x)
+                text_box.y = symbol.y
+                text_box.x = symbol.x + old_y - 100
+                text_box.size_h, text_box.size_w = (text_box.size_w, text_box.size_h)
+        else:
+            for text_box in symbol.text_boxes:
+                text_box.x += symbol.x
+                text_box.y += symbol.y
+            symbol.x += offset[0]
+            symbol.y += offset[1]
+
+        return symbol
 
     def generate_text_box(
         self, type: TextBoxPosition, symbol: GenericSymbol, orientation: int = 0
