@@ -9,6 +9,9 @@ from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
 from config import PNG_SYMBOL_PATH, FONT_PATH, SYMBOL_DEBUG, DATA_PATH
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -74,7 +77,8 @@ class SymbolConfiguration:
 
 class SymbolGenerator:
     ctbm: SymbolConfiguration
-    DEFAULT_TEXT_SIZE = 20
+    DEFAULT_TEXT_SIZE = 15
+    DEFAULT_TEXT_FONT = "font4.ttf"
 
     def __init__(self, ctbm: SymbolConfiguration):
         self.ctbm = ctbm
@@ -95,31 +99,34 @@ class SymbolGenerator:
 
         for text_box in symbol.text_boxes:
             font = ImageFont.truetype(
-                os.path.join(FONT_PATH, "font3.ttf"), text_box.size
+                os.path.join(FONT_PATH, self.DEFAULT_TEXT_FONT), text_box.size
             )
-            draw.text(
-                (
-                    text_box.x * symbol.size_w + symbol.x,
-                    text_box.y * symbol.size_h + symbol.y,
-                ),
-                text_box.chars,
-                fill="black",
-                font=font,
+            text_abs_coords = (
+                text_box.x * symbol.size_w + symbol.x,
+                text_box.y * symbol.size_h + symbol.y,
             )
+            draw.text(text_abs_coords, text_box.chars, fill="black", font=font)
             text_box.size_w, text_box.size_h = draw.multiline_textsize(
                 text_box.chars, font=font
             )
+            text_box.x = text_abs_coords[0]
+            text_box.y = text_abs_coords[1]
         return symbol, diagram_image
 
     def inject_symbol(self, symbol: GenericSymbol, original_image: Image):
-        symbol_image = Image.open(
-            os.path.join(PNG_SYMBOL_PATH, f"{symbol.name}_225.png"), "r"
-        )
+
         text_box_config = self.ctbm.get_config(symbol)
+        image_quality_prefix = 225
         if text_box_config and text_box_config.resol == 2:
-            symbol_image = Image.open(
-                os.path.join(PNG_SYMBOL_PATH, f"{symbol.name}_500.png"), "r"
-            )
+            image_quality_prefix = 500
+        symbol_image = Image.open(
+            os.path.join(PNG_SYMBOL_PATH, f"{symbol.name}_{image_quality_prefix}.png"),
+            "r",
+        )
+
+        if symbol.orientation:
+            symbol_image.rotate(symbol.orientation, expand=True).crop()
+
         original_image.paste(symbol_image, (symbol.x, symbol.y))
         symbol.size_w = symbol_image.size[0]
         symbol.size_h = symbol_image.size[1]
@@ -137,7 +144,7 @@ class SymbolGenerator:
         if type == TextBoxPosition.TOP:
             return TextBox(
                 x=0.0,
-                y=-0.2 * lines,
+                y=-0.3 * lines,
                 lines=lines,
                 chars=chars,
                 size=size,
@@ -163,7 +170,7 @@ class SymbolGenerator:
             )
         elif type == TextBoxPosition.RIGHT:
             return TextBox(
-                x=1.0,
+                x=1.1,
                 y=0.2,
                 lines=lines,
                 chars=chars,

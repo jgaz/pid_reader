@@ -7,12 +7,13 @@ from pprint import pprint
 from random import randint, shuffle
 from PIL import Image
 from config import DATA_PATH, DIAGRAM_PATH
-from metadata import SymbolStorage
+from metadata import SymbolStorage, BlockedSymbolsStorage
 from symbol import GenericSymbol, SymbolGenerator, SymbolConfiguration
 
 
 def generate_diagram(diagram_matter: str):
     number_of_symbols = randint(100, 200)
+    possible_orientation = [90]
     image_diagram = Image.open(os.path.join(DATA_PATH, "diagram_template.png"))
     img_out_filename = os.path.join(DIAGRAM_PATH, "NewDiagram.png")
 
@@ -21,15 +22,22 @@ def generate_diagram(diagram_matter: str):
         symbols = symbol_st.get_symbols_by_matter(diagram_matter)
     else:
         symbols = symbol_st.get_symbols_by_matter(symbol_st.get_matters()[0])
-    shuffle(symbols)
+    blocked_symbol_st = BlockedSymbolsStorage()
+    symbols = blocked_symbol_st.filter_out_blocked_symbols(
+        symbols, blocked_symbol_st.blocked_symbols
+    )
 
+    shuffle(symbols)
     diagram_symbols = []
     ctbm = SymbolConfiguration()
     symbol_generator = SymbolGenerator(ctbm=ctbm)
     for i in range(number_of_symbols):
         symbol = symbols[i % len(symbols)]
         coords = (randint(0, 5000), randint(0, 3500))
-        symbol_generic = GenericSymbol(symbol.name, coords[0], coords[1])
+        orientation = possible_orientation[0] if i % 4 == 0 else 0
+        symbol_generic = GenericSymbol(
+            symbol.name, coords[0], coords[1], orientation=orientation
+        )
         symbol_generator.inject_symbol(symbol_generic, image_diagram)
         symbol_generator.inject_text(symbol_generic, image_diagram)
         diagram_symbols.append(symbol_generic)

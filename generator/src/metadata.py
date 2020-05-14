@@ -69,3 +69,24 @@ class SymbolStorage:
 
     def get_dataframe(self):
         return self.data
+
+
+class BlockedSymbolsStorage:
+    blocked_symbols: List[str] = []
+    BLOCKED_SYMBOLS_METADATA_FILE = os.path.join(METADATA_PATH, "symbols_blocked.csv")
+
+    def __init__(self):
+        self._read()
+
+    def _read(self) -> List[str]:
+        if not self.blocked_symbols:
+            df = pd.read_csv(self.BLOCKED_SYMBOLS_METADATA_FILE)
+            self.blocked_symbols = [x.upper() for x in df.name.values]
+
+        return self.blocked_symbols
+
+    def filter_out_blocked_symbols(
+        self, symbols: List[SymbolData], blocked_symbols: List[str]
+    ):
+        set_blocked_symbols = set([x.upper() for x in blocked_symbols])
+        return [s for s in symbols if s.name.upper() not in set_blocked_symbols]
