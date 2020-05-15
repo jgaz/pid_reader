@@ -95,7 +95,9 @@ class SymbolGenerator:
             TextBoxPosition.CENTER,
         ]
         for text_position in text_positions:
-            symbol.text_boxes += (self.generate_text_box(text_position, symbol),)
+            text_box = self.generate_text_box(text_position, symbol)
+            if text_box:
+                symbol.text_boxes += (text_box,)
         draw = ImageDraw.Draw(diagram_image)
 
         for text_box in symbol.text_boxes:
@@ -192,43 +194,47 @@ class SymbolGenerator:
         size = SymbolGenerator.DEFAULT_TEXT_SIZE
         for _ in range(lines):  # Generate between 1 and 3 lines of text
             chars += "".join(choice(letters) for _ in range(5, 15)) + "\n"
+        chars = chars[:-1]
 
         if type == TextBoxPosition.TOP:
-            return TextBox(
-                x=0.0,
-                y=-0.3 * lines,
-                lines=lines,
-                chars=chars,
-                size=size,
-                orientation=orientation,
-            )
-        elif type == TextBoxPosition.BOTTOM:
-            if SYMBOL_DEBUG:
+            if lines > 0:
                 return TextBox(
                     x=0.0,
-                    y=1.1,
-                    lines=1,
-                    chars=symbol.name,
+                    y=-0.3 * lines,
+                    lines=lines,
+                    chars=chars,
                     size=size,
                     orientation=orientation,
                 )
-            return TextBox(
-                x=0.0,
-                y=1.1,
-                lines=lines,
-                chars=chars,
-                size=size,
-                orientation=orientation,
-            )
+        elif type == TextBoxPosition.BOTTOM:
+            if lines > 0:
+                if SYMBOL_DEBUG:
+                    return TextBox(
+                        x=0.0,
+                        y=1.1,
+                        lines=1,
+                        chars=symbol.name,
+                        size=size,
+                        orientation=orientation,
+                    )
+                return TextBox(
+                    x=0.0,
+                    y=1.1,
+                    lines=lines,
+                    chars=chars,
+                    size=size,
+                    orientation=orientation,
+                )
         elif type == TextBoxPosition.RIGHT:
-            return TextBox(
-                x=1.1,
-                y=0.2,
-                lines=lines,
-                chars=chars,
-                size=size,
-                orientation=orientation,
-            )
+            if lines > 0:
+                return TextBox(
+                    x=1.1,
+                    y=0.2,
+                    lines=lines,
+                    chars=chars,
+                    size=size,
+                    orientation=orientation,
+                )
         elif type == TextBoxPosition.LEFT:
             lines = lines % 2
             chars = "".join(choice(letters) for _ in range(3, 5))
@@ -246,15 +252,22 @@ class SymbolGenerator:
             x = 0.2
             y = 0.2
             text_box_config = self.ctbm.get_config(symbol)
+
             if text_box_config:
                 lines = text_box_config.max_lines
                 x = text_box_config.x
                 y = text_box_config.y
+            if lines > 0:
+                for _ in range(lines):  # Generate between 1 and 3 lines of text
+                    chars += "".join(choice(letters) for _ in range(4, 7)) + "\n\n"
+                chars = chars[:-2]
+                return TextBox(
+                    x=x,
+                    y=y,
+                    lines=lines,
+                    chars=chars,
+                    size=size,
+                    orientation=orientation,
+                )
 
-            for _ in range(lines):  # Generate between 1 and 3 lines of text
-                chars += "".join(choice(letters) for _ in range(4, 7)) + "\n\n"
-            return TextBox(
-                x=x, y=y, lines=lines, chars=chars, size=size, orientation=orientation,
-            )
-        else:
-            return None
+        return None
