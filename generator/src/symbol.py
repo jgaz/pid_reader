@@ -163,14 +163,15 @@ class SymbolGenerator:
 
     def recalculate_positions(self, symbol: GenericSymbol, offset: Tuple[int, int]):
         if symbol.orientation == 90:
-            symbol.y += 300 - symbol.size_w
-            symbol.x += offset[0]
+            old_symbol = (int(symbol.x), int(symbol.y))
+            symbol.y += -offset[0] + 400 - symbol.size_w
+            symbol.x += offset[1]
             symbol.size_h, symbol.size_w = (symbol.size_w, symbol.size_h)
 
             for text_box in symbol.text_boxes:
                 old_y = int(text_box.y)
-                # old_x = int(text_box.x)
-                text_box.y = symbol.y
+                old_x = int(text_box.x)
+                text_box.y = old_symbol[1] - old_x + 400 - text_box.size_w
                 text_box.x = symbol.x + old_y - 100
                 text_box.size_h, text_box.size_w = (text_box.size_w, text_box.size_h)
         else:
