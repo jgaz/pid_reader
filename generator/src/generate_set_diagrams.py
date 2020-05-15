@@ -23,6 +23,7 @@ def generate_diagram(diagram_matter: str):
         symbols = symbol_st.get_symbols_by_matter(diagram_matter)
     else:
         symbols = symbol_st.get_symbols_by_matter(symbol_st.get_matters()[0])
+
     blocked_symbol_st = BlockedSymbolsStorage()
     symbols = blocked_symbol_st.filter_out_blocked_symbols(
         symbols, blocked_symbol_st.blocked_symbols
@@ -40,6 +41,7 @@ def generate_diagram(diagram_matter: str):
             symbol.name, coords[0], coords[1], orientation=orientation
         )
         symbol_generator.inject_symbol(symbol_generic, image_diagram)
+        symbol_generator.draw_boxes(symbol_generic, image_diagram)
         diagram_symbols.append(symbol_generic)
     image_diagram = image_diagram.convert("1")
     image_diagram.save(img_out_filename)
