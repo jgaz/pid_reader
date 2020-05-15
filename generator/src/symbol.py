@@ -1,16 +1,17 @@
 import os
 import string
-import time
 from dataclasses import dataclass
 from enum import Enum
 from random import randint, choice
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, List
 import pandas as pd
 from PIL import Image, ImageOps
 from PIL import ImageDraw
 from PIL import ImageFont
 from config import PNG_SYMBOL_PATH, FONT_PATH, SYMBOL_DEBUG, DATA_PATH
 import logging
+from fa2 import ForceAtlas2
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -96,8 +97,11 @@ class SymbolGenerator:
             TextBoxPosition.LEFT,
             TextBoxPosition.CENTER,
         ]
+
         for text_position in text_positions:
             text_box = self.generate_text_box(text_position, symbol)
+            # print(symbol)
+
             if text_box:
                 symbol.text_boxes += (text_box,)
         draw = ImageDraw.Draw(diagram_image)
@@ -116,6 +120,7 @@ class SymbolGenerator:
             )
             # Set the relative coords for the text box
             text_box.x, text_box.y = text_coords
+
         return symbol, diagram_image
 
     def inject_symbol(self, symbol: GenericSymbol, original_image: Image):
@@ -134,8 +139,8 @@ class SymbolGenerator:
         assemble_image = Image.new("L", self.ASSEMBLY_IMAGE_SIZE, 255)
         assemble_image.paste(symbol_image, offset)
         symbol.size_w, symbol.size_h = symbol_image.size
-        self.inject_text(symbol, assemble_image, offset)
 
+        self.inject_text(symbol, assemble_image, offset)
         if symbol.orientation > 0:
             assemble_image = assemble_image.rotate(symbol.orientation, expand=True)
 
@@ -281,3 +286,42 @@ class SymbolGenerator:
                 )
 
         return None
+
+
+class SymbolPositioner:
+    @staticmethod
+    def get_symbol_position(
+        number_of_symbols: int, size: Tuple[int, int]
+    ) -> List[Tuple[int, int]]:
+
+        forceatlas2 = ForceAtlas2(
+            # Behavior alternatives
+            outboundAttractionDistribution=True,  # Dissuade hubs
+            linLogMode=False,  # NOT IMPLEMENTED
+            adjustSizes=False,  # Prevent overlap (NOT IMPLEMENTED)
+            edgeWeightInfluence=1.0,
+            # Performance
+            jitterTolerance=0.1,  # Tolerance
+            barnesHutOptimize=True,
+            barnesHutTheta=1.2,
+            multiThreaded=False,  # NOT IMPLEMENTED
+            # Tuning
+            scalingRatio=2.0,
+            strongGravityMode=False,
+            gravity=0.5,
+            # Log
+            verbose=False,
+        )
+        G = np.identity(number_of_symbols)
+        positions = forceatlas2.forceatlas2(G, pos=None, iterations=50)
+
+        x, y = zip(*positions)
+        x_range = max(x) - min(x)
+        y_range = max(y) - min(y)
+        dx, dy = (size[0] - 100, size[1] - 100)
+        x_ratio = dx / x_range
+        y_ratio = dy / y_range
+        x = (np.array(x) + np.abs(min(x))) * x_ratio + 50
+        y = (np.array(y) + np.abs(min(y))) * y_ratio + 50
+        positions = list(zip(x.astype(int), y.astype(int)))
+        return positions

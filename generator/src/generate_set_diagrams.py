@@ -10,13 +10,15 @@ from typing import List, Optional
 from PIL import Image
 from config import DIAGRAM_PATH
 from metadata import SymbolStorage, BlockedSymbolsStorage
-from symbol import GenericSymbol, SymbolGenerator, SymbolConfiguration
+from symbol import GenericSymbol, SymbolGenerator, SymbolConfiguration, SymbolPositioner
 
 
 def generate_diagram(diagram_matters: Optional[List[str]]):
     number_of_symbols = randint(100, 200)
     possible_orientation = [90]
-    image_diagram = Image.new("LA", (5000, 3500), 255)
+    DIAGRAM_SIZE = (5000, 3500)
+
+    image_diagram = Image.new("LA", DIAGRAM_SIZE, 255)
     img_out_filename = os.path.join(DIAGRAM_PATH, "NewDiagram.png")
 
     symbol_st = SymbolStorage()
@@ -36,9 +38,11 @@ def generate_diagram(diagram_matters: Optional[List[str]]):
     diagram_symbols = []
     ctbm = SymbolConfiguration()
     symbol_generator = SymbolGenerator(ctbm=ctbm)
+    positions = SymbolPositioner.get_symbol_position(number_of_symbols, DIAGRAM_SIZE)
+
     for i in range(number_of_symbols):
         symbol = symbols[i % len(symbols)]
-        coords = (randint(0, 5000), randint(0, 3500))
+        coords = positions[i]
         orientation = possible_orientation[0] if i % 4 == 0 else 0
         symbol_generic = GenericSymbol(
             symbol.name, coords[0], coords[1], orientation=orientation
@@ -67,5 +71,7 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
     symbols_used = generate_diagram(args.diagram_matter)
+
     pprint(symbols_used)
