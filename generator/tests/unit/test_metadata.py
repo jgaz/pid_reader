@@ -2,7 +2,7 @@ import logging
 
 import pandas as pd
 
-from metadata import SymbolStorage
+from metadata import SymbolStorage, BlockedSymbolsStorage, SymbolData
 
 logger = logging.getLogger(__name__)
 
@@ -49,3 +49,14 @@ class TestSymbolStorage:
         assert symbol_list[0].family == "b"
         assert symbol_list[0].description == "c"
         assert symbol_list[0].matter == "d"
+
+
+class TestBlockedSymbolStorage:
+    def test_filter_out_blocked_symbols(self):
+        ss = BlockedSymbolsStorage()
+        res = ss.filter_out_blocked_symbols([SymbolData("aa", "", "", "")], ["aa"])
+        assert len(res) == 0
+        res = ss.filter_out_blocked_symbols(
+            [SymbolData("aa", "", "", ""), SymbolData("ab", "", "", "")], ["aa"]
+        )
+        assert len(res) == 1

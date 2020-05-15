@@ -41,5 +41,5 @@ if __name__ == "__main__":
 
     elif args.cad_conversion:
         storage = SymbolStorage()
-        symbols = storage._read()
-        dxf_to_png(symbols)
+        symbols_stored = storage.data.to_dict("records")
+        dxf_to_png(symbols_stored)
