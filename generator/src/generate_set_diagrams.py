@@ -5,22 +5,25 @@ import argparse
 import os
 from pprint import pprint
 from random import randint, shuffle
+from typing import List, Optional
+
 from PIL import Image
-from config import DATA_PATH, DIAGRAM_PATH
+from config import DIAGRAM_PATH
 from metadata import SymbolStorage, BlockedSymbolsStorage
 from symbol import GenericSymbol, SymbolGenerator, SymbolConfiguration
 
 
-def generate_diagram(diagram_matter: str):
+def generate_diagram(diagram_matters: Optional[List[str]]):
     number_of_symbols = randint(100, 200)
     possible_orientation = [90]
-    # image_diagram = Image.open(os.path.join(DATA_PATH, "diagram_template.png"))
     image_diagram = Image.new("LA", (5000, 3500), 255)
     img_out_filename = os.path.join(DIAGRAM_PATH, "NewDiagram.png")
 
     symbol_st = SymbolStorage()
-    if diagram_matter != "random":
-        symbols = symbol_st.get_symbols_by_matter(diagram_matter)
+    if diagram_matters:
+        symbols = []
+        for matter in diagram_matters:
+            symbols.extend(symbol_st.get_symbols_by_matter(matter))
     else:
         symbols = symbol_st.get_symbols_by_matter(symbol_st.get_matters()[0])
 
@@ -58,12 +61,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--diagram_matter",
         type=str,
-        nargs=1,
+        nargs="*",
         help="Matter of the diagram",
-        default="random",
+        default=None,
     )
 
     args = parser.parse_args()
-
-    symbols_used = generate_diagram(args.diagram_matter[0])
+    symbols_used = generate_diagram(args.diagram_matter)
     pprint(symbols_used)
