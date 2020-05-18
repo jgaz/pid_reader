@@ -8,7 +8,13 @@ import pandas as pd
 from PIL import Image, ImageOps
 from PIL import ImageDraw
 from PIL import ImageFont
-from config import PNG_SYMBOL_PATH, FONT_PATH, SYMBOL_DEBUG, DATA_PATH
+from config import (
+    PNG_SYMBOL_PATH,
+    FONT_PATH,
+    SYMBOL_DEBUG,
+    DATA_PATH,
+    SYMBOL_SOURCE_RESOLUTIONS,
+)
 import logging
 from fa2 import ForceAtlas2
 import numpy as np
@@ -100,8 +106,6 @@ class SymbolGenerator:
 
         for text_position in text_positions:
             text_box = self.generate_text_box(text_position, symbol)
-            # print(symbol)
-
             if text_box:
                 symbol.text_boxes += (text_box,)
         draw = ImageDraw.Draw(diagram_image)
@@ -126,11 +130,13 @@ class SymbolGenerator:
     def inject_symbol(self, symbol: GenericSymbol, original_image: Image):
         # Fetch the image in approrpiate format
         text_box_config = self.ctbm.get_config(symbol)
-        image_quality_prefix = 225
-        if text_box_config and text_box_config.resol == 2:
-            image_quality_prefix = 500
+        image_quality_prefix = SYMBOL_SOURCE_RESOLUTIONS[0]
+        if text_box_config:
+            image_quality_prefix = SYMBOL_SOURCE_RESOLUTIONS[text_box_config.resol]
         symbol_image = Image.open(
-            os.path.join(PNG_SYMBOL_PATH, f"{symbol.name}_{image_quality_prefix}.png"),
+            os.path.join(
+                PNG_SYMBOL_PATH, f"{image_quality_prefix}", f"{symbol.name}.png"
+            ),
             "r",
         )
 
@@ -210,10 +216,11 @@ class SymbolGenerator:
         chars = chars[:-1]
 
         if type == TextBoxPosition.TOP:
+            y = (lines * self.DEFAULT_TEXT_SIZE) * 1.4 / symbol.size_h
             if lines > 0:
                 return TextBox(
                     x=0.0,
-                    y=-0.3 * lines,
+                    y=-y,
                     lines=lines,
                     chars=chars,
                     size=size,

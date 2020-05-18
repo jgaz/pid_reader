@@ -21,3 +21,6 @@ Deep Learning Network](https://www.mdpi.com/1996-1073/12/23/4425)
 
 ### Out of scope?
 - [Automatic derivation of qualitative plant simulation models from legacy piping and instrumentation diagrams](https://www.sciencedirect.com/science/article/abs/pii/S0098135416301363)
+
+### Websites
+- [Computer vision general](https://madewithml.com/)
