@@ -3,10 +3,11 @@ import pickle
 import pandas as pd
 from dataclasses import dataclass
 from typing import Tuple, List
-from config import METADATA_PATH
-
+from config import METADATA_PATH, DIAGRAM_PATH
 
 import logging
+
+from symbol import GenericSymbol
 
 logger = logging.getLogger(__name__)
 
@@ -90,3 +91,16 @@ class BlockedSymbolsStorage:
     ):
         set_blocked_symbols = set([x.upper() for x in blocked_symbols])
         return [s for s in symbols if s.name.upper() not in set_blocked_symbols]
+
+
+class DiagramSymbolsStorage:
+    PATH = DIAGRAM_PATH
+
+    def _get_path(self, hash: str):
+        return os.path.join(DiagramSymbolsStorage.PATH, f"Diagram_{hash}.pickle")
+
+    def save(self, hash: str, symbols: List[GenericSymbol]):
+        pickle.dump(symbols, open(self._get_path(hash), "wb"))
+
+    def load(self, hash: str):
+        return pickle.load(open(self._get_path(hash), "rb"))

@@ -130,7 +130,7 @@ class SymbolGenerator:
     def inject_symbol(self, symbol: GenericSymbol, original_image: Image):
         # Fetch the image in approrpiate format
         text_box_config = self.ctbm.get_config(symbol)
-        image_quality_prefix = SYMBOL_SOURCE_RESOLUTIONS[0]
+        image_quality_prefix = SYMBOL_SOURCE_RESOLUTIONS[1]
         if text_box_config:
             image_quality_prefix = SYMBOL_SOURCE_RESOLUTIONS[text_box_config.resol]
         symbol_image = Image.open(
