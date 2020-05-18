@@ -84,7 +84,11 @@ if __name__ == "__main__":
         description="Generate a set of diagrams and the input for the NNet"
     )
     parser.add_argument(
-        "--number", type=int, nargs=1, help="Number of diagrams to produce", default=1
+        "--number_diagrams",
+        type=int,
+        nargs=1,
+        help="Number of diagrams to produce",
+        default=1,
     )
     parser.add_argument(
         "--diagram_matter",
@@ -96,10 +100,10 @@ if __name__ == "__main__":
     symbol_storage = SymbolStorage()
     dss = DiagramSymbolsStorage()
     args = parser.parse_args()
-
-    if args.diagram_matter:
-        diagram_matters = args.diagram_matter
-    else:
-        diagram_matters = get_random_matters(symbol_storage)
-
-    symbols_used = generate_diagram(symbol_storage, dss, diagram_matters)
+    number_diagrams = int(args.number_diagrams[0])
+    for i in range(number_diagrams):
+        if args.diagram_matter:
+            diagram_matters = args.diagram_matter
+        else:
+            diagram_matters = get_random_matters(symbol_storage)
+        generate_diagram(symbol_storage, dss, diagram_matters)
