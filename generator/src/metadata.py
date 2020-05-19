@@ -1,3 +1,4 @@
+import hashlib
 import os
 import pickle
 import pandas as pd
@@ -104,3 +105,21 @@ class DiagramSymbolsStorage:
 
     def load(self, hash: str):
         return pickle.load(open(self._get_path(hash), "rb"))
+
+
+class DiagramStorage:
+    def store_image(self, dss: DiagramSymbolsStorage, image_diagram, diagram_symbols):
+        image_diagram = image_diagram.convert("1")
+        img_out_filename = os.path.join(DIAGRAM_PATH, "Diagram.png")
+        image_diagram.save(img_out_filename)
+        hash = self.get_hash(img_out_filename)
+        os.rename(img_out_filename, os.path.join(DIAGRAM_PATH, f"Diagram_{hash}.png"))
+        dss.save(hash, diagram_symbols)
+
+    def get_hash(self, f_path, mode="md5"):
+        h = hashlib.new(mode)
+        with open(f_path, "rb") as file:
+            data = file.read()
+        h.update(data)
+        digest = h.hexdigest()
+        return digest

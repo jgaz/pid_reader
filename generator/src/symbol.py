@@ -44,6 +44,7 @@ class GenericSymbol:
     full_text: str = ""
     text_boxes: Tuple[TextBox, ...] = ()
     orientation: int = 0
+    resolution: int = 1
 
 
 @dataclass
@@ -130,15 +131,15 @@ class SymbolGenerator:
     def inject_symbol(self, symbol: GenericSymbol, original_image: Image):
         # Fetch the image in approrpiate format
         text_box_config = self.ctbm.get_config(symbol)
-        image_quality_prefix = SYMBOL_SOURCE_RESOLUTIONS[1]
-        if text_box_config:
-            image_quality_prefix = SYMBOL_SOURCE_RESOLUTIONS[text_box_config.resol]
+        resolution = text_box_config.resol if text_box_config else 1
+        image_quality_prefix = SYMBOL_SOURCE_RESOLUTIONS[resolution]
         symbol_image = Image.open(
             os.path.join(
                 PNG_SYMBOL_PATH, f"{image_quality_prefix}", f"{symbol.name}.png"
             ),
             "r",
         )
+        symbol.resolution = resolution
 
         # Put symbol and text boxes
         offset = self.ASSEMBLY_IMAGE_OFFSET
@@ -156,26 +157,6 @@ class SymbolGenerator:
         original_image.paste(assemble_image, (symbol.x, symbol.y), mask=inverted_image)
         # Recalculate positioning after the paste [and rotation]
         self.recalculate_positions(symbol, offset)
-
-    def draw_boxes(self, symbol: GenericSymbol, original_image: Image):
-        # Test out positioning reported
-        draw = ImageDraw.Draw(original_image)
-        box = (
-            (symbol.x, symbol.y),
-            (symbol.x + symbol.size_w, symbol.y),
-            (symbol.x + symbol.size_w, symbol.y + symbol.size_h),
-            (symbol.x, symbol.y + symbol.size_h),
-        )
-        draw.polygon(box, outline="blue")
-
-        for text_box in symbol.text_boxes:
-            box2 = (
-                (text_box.x, text_box.y),
-                (text_box.x + text_box.size_w, text_box.y),
-                (text_box.x + text_box.size_w, text_box.y + text_box.size_h),
-                (text_box.x, text_box.y + text_box.size_h),
-            )
-            draw.polygon(box2, outline="blue")
 
     def recalculate_positions(self, symbol: GenericSymbol, offset: Tuple[int, int]):
         if symbol.orientation == 90:
@@ -211,6 +192,9 @@ class SymbolGenerator:
         letters = string.ascii_uppercase
         chars = ""
         size = SymbolGenerator.DEFAULT_TEXT_SIZE
+        if symbol.resolution == 0:
+            size = 10
+
         for _ in range(lines):  # Generate between 1 and 3 lines of text
             chars += "".join(choice(letters) for _ in range(5, 15)) + "\n"
         chars = chars[:-1]
@@ -293,6 +277,26 @@ class SymbolGenerator:
                 )
 
         return None
+
+    def draw_boxes(self, symbol: GenericSymbol, original_image: Image):
+        # Test out positioning reported
+        draw = ImageDraw.Draw(original_image)
+        box = (
+            (symbol.x, symbol.y),
+            (symbol.x + symbol.size_w, symbol.y),
+            (symbol.x + symbol.size_w, symbol.y + symbol.size_h),
+            (symbol.x, symbol.y + symbol.size_h),
+        )
+        draw.polygon(box, outline="blue")
+
+        for text_box in symbol.text_boxes:
+            box2 = (
+                (text_box.x, text_box.y),
+                (text_box.x + text_box.size_w, text_box.y),
+                (text_box.x + text_box.size_w, text_box.y + text_box.size_h),
+                (text_box.x, text_box.y + text_box.size_h),
+            )
+            draw.polygon(box2, outline="blue")
 
 
 class SymbolPositioner:

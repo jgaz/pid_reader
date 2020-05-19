@@ -8,5 +8,5 @@ METADATA_PATH = os.path.join(DATA_PATH, "metadata")
 
 PNG_SYMBOL_PATH = os.path.join(DATA_PATH, "symbol_libraries", "png")
 
-SYMBOL_DEBUG = True
+SYMBOL_DEBUG = False
 SYMBOL_SOURCE_RESOLUTIONS = ["100", "225", "600"]
