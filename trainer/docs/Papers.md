@@ -1,5 +1,12 @@
 ## List of papers to go through
 
+
+
+
+
+## Full problem
+
+
 ### High priority
 - [Teaching a Machine to Read Maps with Deep Reinforcement Learning](https://arxiv.org/pdf/1711.07479.pdf)
 - [Automatic Information Extraction from Piping and Instrumentation
@@ -24,3 +31,15 @@ Deep Learning Network](https://www.mdpi.com/1996-1073/12/23/4425)
 
 ### Websites
 - [Computer vision general](https://madewithml.com/)
+
+
+## Object detection
+
+### EfficientNET and EfficientDET
+- [EfficientNet Keras Applications](https://github.com/keras-team/keras-applications/tree/master/keras_applications)
+- [EfficientNet TPU](https://github.com/tensorflow/tpu/tree/master/models/official/efficientnet)
+- [EfficientNet TPU Tutorial](https://cloud.google.com/tpu/docs/tutorials/efficientnet)
+- [EfficientDet Google Automl](https://github.com/google/automl/tree/master/efficientdet)
+
+### Yolo4
+- [Yolo4 detector](https://arxiv.org/abs/2004.10934)
