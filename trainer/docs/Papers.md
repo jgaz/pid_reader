@@ -43,3 +43,6 @@ Deep Learning Network](https://www.mdpi.com/1996-1073/12/23/4425)
 
 ### Yolo4
 - [Yolo4 detector](https://arxiv.org/abs/2004.10934)
+
+### Facebook Transformer
+- [Blog](https://ai.facebook.com/blog/end-to-end-object-detection-with-transformers) [Repo](https://github.com/facebookresearch/detr)
