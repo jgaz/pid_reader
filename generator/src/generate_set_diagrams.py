@@ -3,11 +3,11 @@ Generates a set of diagrams
 """
 import argparse
 import random
-from random import randint, shuffle
+from random import shuffle
 from typing import List
 
 from PIL import Image
-from config import SYMBOL_DEBUG
+from config import SYMBOL_DEBUG, DIAGRAM_SIZE, NUMBER_OF_SYMBOLS
 from metadata import (
     SymbolStorage,
     BlockedSymbolsStorage,
@@ -22,9 +22,8 @@ def generate_diagram(
     dss: DiagramSymbolsStorage,
     diagram_matters: List[str],
 ):
-    number_of_symbols = randint(100, 200)
     possible_orientation = [90]
-    DIAGRAM_SIZE = (5000, 3500)
+
     image_diagram = Image.new("LA", DIAGRAM_SIZE, 255)
     symbols = []
 
@@ -40,9 +39,9 @@ def generate_diagram(
     diagram_symbols = []
     ctbm = SymbolConfiguration()
     symbol_generator = SymbolGenerator(ctbm=ctbm)
-    positions = SymbolPositioner.get_symbol_position(number_of_symbols, DIAGRAM_SIZE)
+    positions = SymbolPositioner.get_symbol_position(NUMBER_OF_SYMBOLS, DIAGRAM_SIZE)
 
-    for i in range(number_of_symbols):
+    for i in range(NUMBER_OF_SYMBOLS):
         symbol = symbols[i % len(symbols)]
         coords = positions[i]
         orientation = possible_orientation[0] if i % 4 == 0 else 0

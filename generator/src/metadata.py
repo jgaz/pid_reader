@@ -1,10 +1,14 @@
 import hashlib
+import io
 import os
 import pickle
+
+import PIL
 import pandas as pd
 from dataclasses import dataclass
-from typing import Tuple, List
-from config import METADATA_PATH, DIAGRAM_PATH
+from typing import Tuple, List, Dict
+from config import METADATA_PATH, DIAGRAM_PATH, DIAGRAM_SIZE
+import tensorflow.compat.v1 as tf
 
 import logging
 
@@ -95,6 +99,10 @@ class BlockedSymbolsStorage:
 
 
 class DiagramSymbolsStorage:
+    """
+    Storage of the symbol metadata: position, type, etc...
+    """
+
     PATH = DIAGRAM_PATH
 
     def _get_path(self, hash: str):
@@ -123,3 +131,166 @@ class DiagramStorage:
         h.update(data)
         digest = h.hexdigest()
         return digest
+
+
+class TensorflowStorage:
+    GLOBAL_IMG_ID = 0
+    GLOBAL_ANN_ID = 0
+
+    """
+    {
+        "images": [
+            {"file_name": "2008_000008.jpg", "height": 442, "width": 500, "id": 1},
+        ],
+        "type": "instances",
+        "annotations": [
+            {
+                "area": 139194,                "iscrowd": 0,                "image_id": 1,
+                "bbox": [53, 87, 418, 333],                "category_id": 13,                "id": 1,
+                "ignore": 0,                "segmentation": [],
+            },
+        ],
+        "categories": [{"supercategory": "none", "id": 1, "name": "aeroplane"},],
+    }
+    """
+
+    ann_json_dict: Dict = {
+        "images": [],
+        "type": "instances",
+        "annotations": [],
+        "categories": [],
+    }
+
+    def _get_image_id(self):
+        self.GLOBAL_IMG_ID += 1
+        return self.GLOBAL_IMG_ID
+
+    def _get_ann_id(self):
+        self.GLOBAL_ANN_ID += 1
+        return self.GLOBAL_ANN_ID
+
+    def diagram_to_tf_example(
+        self, full_path: str, metadata: List[GenericSymbol], label_map_dict
+    ):
+        """Convert pickle file into tfrecord
+
+        Notice that this function normalizes the bounding box coordinates provided
+        by the raw data.
+
+        Args:
+            image_name: name of the generated diagram
+            metadata: metadata of the diagram
+            label_map_dict: A map from symbol names to integers ids.
+            ann_json_dict: annotation json dictionary.
+
+        Returns:
+          example: The converted tf.Example.
+
+        Raises:
+          ValueError: if the image pointed to by data['filename'] is not a valid JPEG
+        """
+
+        with tf.gfile.GFile(full_path, "rb") as fid:
+            original_encoded_img = fid.read()
+        # Save into jpeg
+        encoded_img_io = io.BytesIO(original_encoded_img)
+        image = PIL.Image.open(encoded_img_io).convert("RGB")
+        with io.BytesIO() as output:
+            image.save(output, "JPEG")
+            encoded_img = output.getvalue()
+        key = hashlib.sha256(encoded_img).hexdigest()
+
+        width, height = DIAGRAM_SIZE
+        file_name = full_path.split("/")[-1]
+        image_id = self._get_image_id()
+
+        if self.ann_json_dict:
+            image = {
+                "file_name": file_name,
+                "height": height,
+                "width": width,
+                "id": image_id,
+            }
+            self.ann_json_dict["images"].append(image)
+
+        xmin = []
+        ymin = []
+        xmax = []
+        ymax = []
+        classes = []
+        classes_text = []
+        truncated = []
+        poses: List[str] = []
+        difficult_obj = []
+
+        for symbol in metadata:
+            difficult_obj.append(int(False))  # Not needed
+            truncated.append(int(False))  # Not truncated either
+
+            xmin.append(float(symbol.x) / width)
+            ymin.append(float(symbol.y) / height)
+            xmax.append(float(symbol.x + symbol.size_w) / width)
+            ymax.append(float(symbol.y + symbol.size_h) / height)
+            classes_text.append(symbol.name.encode("utf8"))
+            classes.append(label_map_dict[symbol.name])
+
+            # TODO: what is pose?
+            # poses.append(obj['pose'].encode('utf8'))
+
+            if self.ann_json_dict:
+                abs_xmin = int(symbol.x)
+                abs_ymin = int(symbol.y)
+                abs_xmax = int(symbol.x + symbol.size_w)
+                abs_ymax = int(symbol.y + symbol.size_h)
+                abs_width = abs_xmax - abs_xmin
+                abs_height = abs_ymax - abs_ymin
+                ann = {
+                    "area": abs_width * abs_height,
+                    "iscrowd": 0,
+                    "image_id": image_id,
+                    "bbox": [abs_xmin, abs_ymin, abs_width, abs_height],
+                    "category_id": label_map_dict[symbol.name],
+                    "id": self._get_ann_id(),
+                    "ignore": 0,
+                    "segmentation": [],
+                }
+                self.ann_json_dict["annotations"].append(ann)
+
+        example = tf.train.Example(
+            features=tf.train.Features(
+                feature={
+                    "image/height": self.int64_feature(height),
+                    "image/width": self.int64_feature(width),
+                    "image/filename": self.bytes_feature(file_name.encode("utf8")),
+                    "image/source_id": self.bytes_feature(str(image_id).encode("utf8")),
+                    "image/key/sha256": self.bytes_feature(key.encode("utf8")),
+                    "image/encoded": self.bytes_feature(encoded_img),
+                    "image/format": self.bytes_feature("png".encode("utf8")),
+                    "image/object/bbox/xmin": self.float_list_feature(xmin),
+                    "image/object/bbox/xmax": self.float_list_feature(xmax),
+                    "image/object/bbox/ymin": self.float_list_feature(ymin),
+                    "image/object/bbox/ymax": self.float_list_feature(ymax),
+                    "image/object/class/text": self.bytes_list_feature(classes_text),
+                    "image/object/class/label": self.int64_list_feature(classes),
+                    "image/object/difficult": self.int64_list_feature(difficult_obj),
+                    "image/object/truncated": self.int64_list_feature(truncated),
+                    "image/object/view": self.bytes_list_feature(poses),
+                }
+            )
+        )
+        return example
+
+    def int64_feature(self, value):
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
+
+    def int64_list_feature(self, value):
+        return tf.train.Feature(int64_list=tf.train.Int64List(value=value))
+
+    def bytes_feature(self, value):
+        return tf.train.Feature(bytes_list=tf.train.BytesList(value=[value]))
+
+    def bytes_list_feature(self, value):
+        return tf.train.Feature(bytes_list=tf.train.BytesList(value=value))
+
+    def float_list_feature(self, value):
+        return tf.train.Feature(float_list=tf.train.FloatList(value=value))
