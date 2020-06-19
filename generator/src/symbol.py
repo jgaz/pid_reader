@@ -302,7 +302,7 @@ class SymbolGenerator:
 class SymbolPositioner:
     @staticmethod
     def get_symbol_position(
-        number_of_symbols: int, size: Tuple[int, int]
+        number_of_symbols: int, diagram_size: Tuple[int, int]
     ) -> List[Tuple[int, int]]:
 
         forceatlas2 = ForceAtlas2(
@@ -329,10 +329,10 @@ class SymbolPositioner:
         x, y = zip(*positions)
         x_range = max(x) - min(x)
         y_range = max(y) - min(y)
-        dx, dy = (size[0] - 100, size[1] - 100)
+        dx, dy = (diagram_size[0] - 100, diagram_size[1] - 100)
         x_ratio = dx / x_range
         y_ratio = dy / y_range
-        x = (np.array(x) + np.abs(min(x))) * x_ratio + 50
-        y = (np.array(y) + np.abs(min(y))) * y_ratio + 50
+        x = (np.array(x) + np.abs(min(x))) * x_ratio
+        y = (np.array(y) + np.abs(min(y))) * y_ratio
         positions = list(zip(x.astype(int), y.astype(int)))
         return positions
