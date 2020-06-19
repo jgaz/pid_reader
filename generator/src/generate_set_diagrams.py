@@ -5,9 +5,8 @@ import argparse
 import random
 from random import shuffle
 from typing import List
-
 from PIL import Image
-from config import SYMBOL_DEBUG, DIAGRAM_SIZE, NUMBER_OF_SYMBOLS
+from config import SYMBOL_DEBUG, DIAGRAM_SIZE, NUMBER_OF_SYMBOLS, LOGGING_LEVEL
 from metadata import (
     SymbolStorage,
     BlockedSymbolsStorage,
@@ -15,6 +14,10 @@ from metadata import (
     DiagramStorage,
 )
 from symbol import GenericSymbol, SymbolGenerator, SymbolConfiguration, SymbolPositioner
+import logging
+
+logging.basicConfig(level=LOGGING_LEVEL)
+logger = logging.getLogger(__name__)
 
 
 def generate_diagram(
@@ -67,28 +70,30 @@ if __name__ == "__main__":
         type=int,
         nargs=1,
         help="Number of diagrams to produce",
-        default=[1],
+        default=[100],
     )
     parser.add_argument(
         "--diagram_matter",
         type=str,
         nargs="*",
-        help="""Matters of the diagram, at least two: 'P-Process', 'L-Piping', 'H-HVAC', 'T-telecom', 'N-Structural',
-       'R-Mechanical', 'E-Electro', 'J-Instrument', 'S-Safety'""",
+        help="""Matters of the diagram, at least two: 'P-Process', 'L-Piping', 'J-Instrument', 'H-HVAC',
+        'T-telecom', 'N-Structural', 'R-Mechanical', 'E-Electro', 'S-Safety'""",
         default=None,
     )
     symbol_storage = SymbolStorage()
     dss = DiagramSymbolsStorage()
     args = parser.parse_args()
     number_diagrams = int(args.number_diagrams[0])
-    for i in range(number_diagrams):
-        if args.diagram_matter:
-            if type(args.diagram_matter) == list:
-                diagram_matters = args.diagram_matter
-            else:
-                diagram_matters = [args.diagram_matter]
-        else:
-            matters = symbol_storage.get_matters()
-            random.choices(matters, k=2)
 
-    generate_diagram(symbol_storage, dss, diagram_matters)
+    if args.diagram_matter:
+        if type(args.diagram_matter) == list:
+            diagram_matters = args.diagram_matter
+        else:
+            diagram_matters = [args.diagram_matter]
+    else:
+        matters = symbol_storage.get_matters()
+        random.choices(matters, k=2)
+
+    for i in range(number_diagrams):
+        logger.info(f"Generating {i} out of {number_diagrams}")
+        generate_diagram(symbol_storage, dss, diagram_matters)

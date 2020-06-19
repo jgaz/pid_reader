@@ -1,4 +1,5 @@
 import os
+import logging
 
 SRC_PATH = os.path.dirname(os.path.realpath(__file__))
 DATA_PATH = os.path.join(os.path.dirname(SRC_PATH), "data")
@@ -14,3 +15,5 @@ SYMBOL_SOURCE_RESOLUTIONS = ["100", "225", "600"]
 # CONFIGURABLE PARAMETERS
 DIAGRAM_SIZE = (1400, 1400)
 NUMBER_OF_SYMBOLS = 20
+
+LOGGING_LEVEL = logging.INFO
