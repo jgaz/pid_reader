@@ -1,0 +1,3 @@
+[submodule "trainer/src/automl"]
+	path = trainer/src/automl
+	url = git@github.com:google/automl.git
