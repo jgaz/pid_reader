@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import List
 
-from config import DIAGRAM_PATH, LOGGING_LEVEL
+from config import DIAGRAM_PATH, LOGGING_LEVEL, TENSORFLOW_PATH
 import logging
 from metadata import DiagramSymbolsStorage, TensorflowStorage, SymbolStorage
 import multiprocessing
@@ -66,14 +66,14 @@ if __name__ == "__main__":
     diagram_path = Path(DIAGRAM_PATH)
 
     params = [(x, label_map_dict) for x in diagram_path.glob("*.pickle")]
-    output_path = "/tmp/"
+    output_path = TENSORFLOW_PATH
     # Save TF record in chunks
     num_shards = 10
     pool = multiprocessing.Pool(4)
     total_num_annotations_skipped = 0
     writers = [
         tf.python_io.TFRecordWriter(
-            output_path + "-%05d-of-%05d.tfrecord" % (i, num_shards)
+            output_path + "/%05d-of-%05d.tfrecord" % (i, num_shards)
         )
         for i in range(num_shards)
     ]
