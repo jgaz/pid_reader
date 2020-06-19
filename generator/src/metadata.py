@@ -134,9 +134,6 @@ class DiagramStorage:
 
 
 class TensorflowStorage:
-    GLOBAL_IMG_ID = 0
-    GLOBAL_ANN_ID = 0
-
     """
     {
         "images": [
@@ -154,23 +151,12 @@ class TensorflowStorage:
     }
     """
 
-    ann_json_dict: Dict = {
-        "images": [],
-        "type": "instances",
-        "annotations": [],
-        "categories": [],
-    }
-
-    def _get_image_id(self):
-        self.GLOBAL_IMG_ID += 1
-        return self.GLOBAL_IMG_ID
-
-    def _get_ann_id(self):
-        self.GLOBAL_ANN_ID += 1
-        return self.GLOBAL_ANN_ID
-
     def diagram_to_tf_example(
-        self, full_path: str, metadata: List[GenericSymbol], label_map_dict
+        self,
+        full_path: str,
+        metadata: List[GenericSymbol],
+        label_map_dict,
+        file_idx: int,
     ):
         """Convert pickle file into tfrecord
 
@@ -189,6 +175,12 @@ class TensorflowStorage:
         Raises:
           ValueError: if the image pointed to by data['filename'] is not a valid JPEG
         """
+        ann_json_dict: Dict = {
+            "images": [],
+            "type": "instances",
+            "annotations": [],
+            "categories": [],
+        }
 
         with tf.gfile.GFile(full_path, "rb") as fid:
             original_encoded_img = fid.read()
@@ -202,16 +194,16 @@ class TensorflowStorage:
 
         width, height = DIAGRAM_SIZE
         file_name = full_path.split("/")[-1]
-        image_id = self._get_image_id()
+        image_id = file_idx
 
-        if self.ann_json_dict:
+        if ann_json_dict:
             image = {
                 "file_name": file_name,
                 "height": height,
                 "width": width,
                 "id": image_id,
             }
-            self.ann_json_dict["images"].append(image)
+            ann_json_dict["images"].append(image)
 
         xmin = []
         ymin = []
@@ -237,7 +229,7 @@ class TensorflowStorage:
             # TODO: what is pose?
             # poses.append(obj['pose'].encode('utf8'))
 
-            if self.ann_json_dict:
+            if ann_json_dict:
                 abs_xmin = int(symbol.x)
                 abs_ymin = int(symbol.y)
                 abs_xmax = int(symbol.x + symbol.size_w)
@@ -250,11 +242,11 @@ class TensorflowStorage:
                     "image_id": image_id,
                     "bbox": [abs_xmin, abs_ymin, abs_width, abs_height],
                     "category_id": label_map_dict[symbol.name],
-                    "id": self._get_ann_id(),
+                    "id": 0,
                     "ignore": 0,
                     "segmentation": [],
                 }
-                self.ann_json_dict["annotations"].append(ann)
+                ann_json_dict["annotations"].append(ann)
 
         example = tf.train.Example(
             features=tf.train.Features(
@@ -280,7 +272,7 @@ class TensorflowStorage:
                 }
             )
         )
-        return example
+        return example, ann_json_dict
 
     def _int64_feature(self, value):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
@@ -296,3 +288,10 @@ class TensorflowStorage:
 
     def _float_list_feature(self, value):
         return tf.train.Feature(float_list=tf.train.FloatList(value=value))
+
+    @staticmethod
+    def reannotate_ids(tf_records):
+        idx = 0
+        for annotation in tf_records["annotations"]:
+            annotation["id"] = idx
+            idx += 1
