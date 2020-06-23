@@ -55,6 +55,38 @@ def merge_json_annotations(full, partial):
     full["annotations"] += partial["annotations"]
 
 
+def save_metadata_yaml(json_annotation, label_map_dict, output_path):
+    logger.info(
+        f"Processed {idx + 1} files, obtained {len(json_annotation['images'])} images in json"
+    )
+    logger.info(f"Obtained {len(json_annotation['annotations'])} annotations in json")
+
+    # Save Json file
+    TensorflowStorage.reannotate_ids(json_annotation)
+    json_file_path = output_path + "/json_pascal.json"
+    with tf.io.gfile.GFile(json_file_path, "w") as f:
+        json.dump(json_annotation, f)
+
+    # Create the YAML model finetune config file
+    yaml_config_contents = {
+        "num_classes": len(label_map_dict),
+        "var_freeze_expr": "(efficientnet|fpn_cells|resample_p6)",
+        "label_id_mapping": {v: k for k, v in label_map_dict.items()},
+    }
+    yaml_file_path = output_path + "/config_finetune.yaml"
+    with open(yaml_file_path, "w") as file:
+        yaml.dump(yaml_config_contents, file)
+    # Create YAML file with training metadata
+    yaml_additional_data_contents = {
+        "num_images": len(json_annotation["images"]),
+        "matters": diagram_matters,
+        "model_id": model_id,
+    }
+    yaml_file_path = output_path + "/training_metadata.yaml"
+    with open(yaml_file_path, "w") as file:
+        yaml.dump(yaml_additional_data_contents, file)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate Tensorflow records to train a vision model"
@@ -119,38 +151,9 @@ if __name__ == "__main__":
             logging.info("On image %d of %d", idx, len(params))
         merge_json_annotations(json_annotation, pool_json_annotation)
         writers[idx % num_shards].write(tf_example.SerializeToString())
-
     pool.close()
     pool.join()
     for writer in writers:
         writer.close()
 
-    logger.info(
-        f"Processed {idx + 1} files, obtained {len(json_annotation['images'])} images in json"
-    )
-    logger.info(f"Obtained {len(json_annotation['annotations'])} annotations in json")
-
-    # Save Json file
-    TensorflowStorage.reannotate_ids(json_annotation)
-    json_file_path = output_path + "/json_pascal.json"
-    with tf.io.gfile.GFile(json_file_path, "w") as f:
-        json.dump(json_annotation, f)
-
-    # Create the YAML model finetune config file
-    yaml_config_contents = {
-        "num_classes": len(label_map_dict),
-        "var_freeze_expr": "(efficientnet|fpn_cells|resample_p6)",
-        "label_id_mapping": {v: k for k, v in label_map_dict.items()},
-    }
-    yaml_file_path = output_path + "/config_finetune.yaml"
-    with open(yaml_file_path, "w") as file:
-        documents = yaml.dump(yaml_config_contents, file)
-    # Create YAML file with training metadata
-    yaml_additional_data_contents = {
-        "num_images": len(json_annotation["images"]),
-        "matters": diagram_matters,
-        "model_id": model_id,
-    }
-    yaml_file_path = output_path + "/training_metadata.yaml"
-    with open(yaml_file_path, "w") as file:
-        documents = yaml.dump(yaml_additional_data_contents, file)
+    save_metadata_yaml(json_annotation, label_map_dict, output_path)
