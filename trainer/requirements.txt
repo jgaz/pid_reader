@@ -1,3 +1,4 @@
 tensorflow
 jupyter
 azureml-sdk[notebooks]
+pycocotools

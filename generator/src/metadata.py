@@ -6,7 +6,7 @@ import pickle
 import PIL
 import pandas as pd
 from dataclasses import dataclass
-from typing import Tuple, List, Dict
+from typing import Tuple, List, Dict, TypedDict, Any
 from config import METADATA_PATH, DIAGRAM_PATH, DIAGRAM_SIZE
 import tensorflow.compat.v1 as tf
 
@@ -23,6 +23,13 @@ class SymbolData:
     family: str
     description: str
     matter: str
+
+
+class JsonTrainingObject(TypedDict):
+    images: List[str]
+    type: str
+    annotations: List[Any]
+    categories: List[Any]
 
 
 class SymbolStorage:
@@ -157,7 +164,7 @@ class TensorflowStorage:
         metadata: List[GenericSymbol],
         label_map_dict,
         file_idx: int,
-    ):
+    ) -> Tuple[tf.train.Example, JsonTrainingObject]:
         """Convert pickle file into tfrecord
 
         Notice that this function normalizes the bounding box coordinates provided
@@ -175,7 +182,7 @@ class TensorflowStorage:
         Raises:
           ValueError: if the image pointed to by data['filename'] is not a valid JPEG
         """
-        ann_json_dict: Dict = {
+        ann_json_dict: JsonTrainingObject = {
             "images": [],
             "type": "instances",
             "annotations": [],
