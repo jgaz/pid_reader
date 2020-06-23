@@ -94,10 +94,13 @@ if __name__ == "__main__":
         (file_idx, file_name, label_map_dict)
         for file_idx, file_name in enumerate(diagram_path.glob("*.pickle"))
     ]
-    model_id = hashlib.sha256(str.encode(f"{diagram_matters}{len(params)}")).hexdigest()
 
+    model_id = hashlib.sha256(str.encode(f"{diagram_matters}{len(params)}")).hexdigest()
     output_path = os.path.join(TENSORFLOW_PATH, model_id)
-    os.mkdir(output_path)
+    try:
+        os.mkdir(output_path)
+    except FileExistsError:
+        pass
 
     # Save TF record in chunks
     num_shards = 10
