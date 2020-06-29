@@ -4,6 +4,7 @@
 import argparse
 import hashlib
 import os
+import subprocess
 from pathlib import Path
 import json
 import yaml
@@ -18,6 +19,8 @@ from metadata import (
 )
 import multiprocessing
 import tensorflow.compat.v1 as tf
+
+from ml_storage import AzureBlobCloudStorage
 
 logging.basicConfig(level=LOGGING_LEVEL)
 logger = logging.getLogger(__name__)
@@ -85,6 +88,13 @@ def save_metadata_yaml(json_annotation, label_map_dict, output_path):
     yaml_file_path = output_path + "/training_metadata.yaml"
     with open(yaml_file_path, "w") as file:
         yaml.dump(yaml_additional_data_contents, file)
+
+
+def create_compress_file(model_id: str, output_path: str):
+    target_file = os.path.join(TENSORFLOW_PATH, f"{model_id}.tgz")
+    cmd = f"tar cfz {target_file} {output_path}"
+    subprocess.check_call(cmd.split(" "))
+    return target_file
 
 
 if __name__ == "__main__":
@@ -157,3 +167,8 @@ if __name__ == "__main__":
         writer.close()
 
     save_metadata_yaml(json_annotation, label_map_dict, output_path)
+
+    training_tar_file = create_compress_file(model_id, output_path)
+
+    cs = AzureBlobCloudStorage()
+    cs.store_file(training_tar_file, f"{model_id}.tgz")
