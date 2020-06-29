@@ -1,8 +1,8 @@
-from compute_resources import (
+from compute import (
     get_or_create_workspace,
     get_or_create_gpu_cluster,
 )
-from config import (
+from __init__ import (
     SUBSCRIPTION_ID,
     RESOURCE_GROUP,
     WORKSPACE_NAME,
