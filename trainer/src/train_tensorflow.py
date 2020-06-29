@@ -2,7 +2,7 @@ from compute import (
     get_or_create_workspace,
     get_or_create_gpu_cluster,
 )
-from __init__ import (
+from config import (
     SUBSCRIPTION_ID,
     RESOURCE_GROUP,
     WORKSPACE_NAME,
