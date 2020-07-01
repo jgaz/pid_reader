@@ -148,13 +148,11 @@ if __name__ == "__main__":
     num_shards = 10
     pool = multiprocessing.Pool(4)
     total_num_annotations_skipped = 0
-    writers = [
-        tf.python_io.TFRecordWriter(
-            output_path + "/%05d-of-%05d.tfrecord" % (i, num_shards)
-        )
+    files_out = [
+        output_path + "/%05d-of-%05d.tfrecord" % (i, num_shards)
         for i in range(num_shards)
     ]
-
+    writers = [tf.python_io.TFRecordWriter(f) for f in files_out]
     for idx, tf_process in enumerate(pool.imap(process_diagram, params)):
         tf_example, pool_json_annotation = tf_process
         if idx % 100 == 0:
@@ -168,7 +166,8 @@ if __name__ == "__main__":
 
     save_metadata_yaml(json_annotation, label_map_dict, output_path)
 
-    training_tar_file = create_compress_file(model_id, output_path)
+    # training_tar_file = create_compress_file(model_id, output_path)
 
     cs = AzureBlobCloudStorage()
-    cs.store_file(training_tar_file, f"{model_id}.tgz")
+    # cs.store_file(training_tar_file, f"{model_id}.tgz")
+    cs.store_directory(output_path, model_id)
