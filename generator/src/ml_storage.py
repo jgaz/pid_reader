@@ -1,7 +1,9 @@
 import os
+import re
 from typing import List
 
 from azure.storage.blob import BlobServiceClient
+from config import TRAINING_STORAGE_CONN_STR
 
 
 class CloudStorage:
@@ -13,8 +15,9 @@ class AzureBlobCloudStorage(CloudStorage):
     CONTAINER_NAME = "pub"
 
     def __init__(self):
-        self.connect_str = os.getenv("AZURE_STORAGE_CONNECTION_STRING") or exit(
-            "AZURE_STORAGE_CONNECTION_STRING needed"
+        self.connect_str = TRAINING_STORAGE_CONN_STR
+        self.storage_account = re.search(r"AccountName=(.*?);", self.connect_str).group(
+            0
         )
         self.blob_service_client = BlobServiceClient.from_connection_string(
             self.connect_str
@@ -40,9 +43,9 @@ class AzureBlobCloudStorage(CloudStorage):
                     self.store_file(file_path_on_local, file_path_on_azure)
 
     def list_files(self, path: str) -> List[str]:
-
-        blob_client = self.blob_service_client.get_blob_client(
-            container=self.CONTAINER_NAME, blob=path
+        container_client = self.blob_service_client.get_container_client(
+            container=self.CONTAINER_NAME
         )
-        files = blob_client.list_blobs(self.CONTAINER_NAME, prefix=path)
-        return [str(x) for x in files]
+        files = container_client.list_blobs(name_starts_with=path)
+        blob_path = f"https://{self.storage_account}.core.windows.net/{self.CONTAINER_NAME}/{path}/"
+        return [blob_path + x["name"] for x in files]

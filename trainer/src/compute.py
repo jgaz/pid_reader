@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 def get_or_create_workspace(
     subscription_id, resource_group, workspace_name, workspace_region
-):
+) -> Workspace:
     try:
         ws = Workspace(
             subscription_id=subscription_id,
