@@ -17,7 +17,7 @@ class AzureBlobCloudStorage(CloudStorage):
     def __init__(self):
         self.connect_str = TRAINING_STORAGE_CONN_STR
         self.storage_account = re.search(r"AccountName=(.*?);", self.connect_str).group(
-            0
+            1
         )
         self.blob_service_client = BlobServiceClient.from_connection_string(
             self.connect_str
@@ -34,7 +34,6 @@ class AzureBlobCloudStorage(CloudStorage):
             blob_client.upload_blob(data)
 
     def store_directory(self, path, blob_name):
-
         for r, d, f in os.walk(path):
             if f:
                 for file in f:
