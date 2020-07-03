@@ -3,6 +3,8 @@ from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.compute_target import ComputeTargetException
 import logging
 
+from azureml.exceptions import ProjectSystemException
+
 logger = logging.getLogger(__name__)
 
 
@@ -20,7 +22,7 @@ def get_or_create_workspace(
         logger.info(
             "Workspace configuration succeeded. Skip the workspace creation steps below"
         )
-    except Exception as e:
+    except ProjectSystemException as e:
         logger.exception(e)
         # Create the workspace using the specified parameters
         ws = Workspace.create(

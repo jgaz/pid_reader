@@ -10,9 +10,10 @@ from config import (
     GPU_CLUSTER_NAME,
 )
 from azureml.core.dataset import Dataset
+import sys
 
 # https://docs.microsoft.com/en-gb/azure/machine-learning/how-to-train-tensorflow
-
+exit(f"I have been hit {sys.argv}")
 if __name__ == "__main__":
     ws = get_or_create_workspace(
         SUBSCRIPTION_ID, RESOURCE_GROUP, WORKSPACE_NAME, WORKSPACE_REGION
@@ -34,7 +35,7 @@ if __name__ == "__main__":
     )
 
     # Prepare the directories of the training data
-    # http://localhost:8888/notebooks/how-to-use-azureml/ml-frameworks/tensorflow/training/train-tensorflow-resume-training/train-tensorflow-resume-training.ipynb
+    # https://github.com/Azure/MachineLearningNotebooks/tree/master/how-to-use-azureml/ml-frameworks/tensorflow
 
     # Create a tensorflow estimator
 
