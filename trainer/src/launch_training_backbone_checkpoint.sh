@@ -10,5 +10,5 @@ python main.py --mode=train_and_eval \
     --eval_batch_size=8 \
     --eval_samples=100  \
     --num_examples_per_epoch=100 \
-    --num_epochs=10  \
+    --num_epochs=5  \
     --hparams="num_classes=20,moving_average_decay=0,mixed_precision=true"

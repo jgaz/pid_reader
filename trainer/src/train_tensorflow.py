@@ -13,7 +13,7 @@ from azureml.core.dataset import Dataset
 import sys
 
 # https://docs.microsoft.com/en-gb/azure/machine-learning/how-to-train-tensorflow
-exit(f"I have been hit {sys.argv}")
+
 if __name__ == "__main__":
     ws = get_or_create_workspace(
         SUBSCRIPTION_ID, RESOURCE_GROUP, WORKSPACE_NAME, WORKSPACE_REGION
