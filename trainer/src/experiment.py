@@ -56,7 +56,11 @@ if __name__ == "__main__":
         script_params=script_params,
         entry_script="train_tensorflow.py",
         use_gpu=True,
-        pip_packages=["azureml-dataprep[fuse]"],
+        pip_packages=[
+            "azureml-dataprep[fuse]",
+            "tensorflow-gpu==2.2.0",
+            "-e git+https://github.com/qubvel/efficientnet@e9fdd43857785fe5ccf3863915dcaf618b86849f#egg=efficientnet",
+        ],
     )
 
     run = experiment.submit(estimator)
