@@ -3,6 +3,10 @@ from efficientnet.model import EfficientNet
 import collections
 
 
+class TrainingMetadata:
+    pass
+
+
 class ModelFactory:
     def get_model(self, image_size: int, classes: int) -> EfficientNet:
         shape_one_channel = (image_size, image_size, 1)

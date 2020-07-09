@@ -59,7 +59,7 @@ if __name__ == "__main__":
         pip_packages=[
             "azureml-dataprep[fuse]",
             "tensorflow-gpu==2.2.0",
-            "-e git+https://github.com/qubvel/efficientnet@e9fdd43857785fe5ccf3863915dcaf618b86849f#egg=efficientnet",
+            "git+https://github.com/qubvel/efficientnet@e9fdd43857785fe5ccf3863915dcaf618b86849f#egg=efficientnet",
         ],
     )
 

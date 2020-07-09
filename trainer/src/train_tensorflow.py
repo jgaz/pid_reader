@@ -7,8 +7,16 @@ from model import ModelFactory
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Training the network")
-    parser.add_argument("experiment_id", type=str, help="""The experiment id""")
-    parser.add_argument("data_folder", type=str, help="""Where the training data is""")
+    parser.add_argument(
+        "-e", "--experiment_id", required=True, type=str, help="""The experiment id"""
+    )
+    parser.add_argument(
+        "-d",
+        "--data_folder",
+        required=True,
+        type=str,
+        help="""Where the training data is""",
+    )
 
     args = parser.parse_args()
     experiment_id = args.experiment_id
