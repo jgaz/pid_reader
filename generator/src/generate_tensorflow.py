@@ -4,7 +4,6 @@
 import argparse
 import hashlib
 import os
-import subprocess
 from pathlib import Path
 import json
 import yaml
@@ -70,31 +69,17 @@ def save_metadata_yaml(json_annotation, label_map_dict, output_path):
     with tf.io.gfile.GFile(json_file_path, "w") as f:
         json.dump(json_annotation, f)
 
-    # Create the YAML model finetune config file
-    yaml_config_contents = {
-        "num_classes": len(label_map_dict),
-        "var_freeze_expr": "(efficientnet|fpn_cells|resample_p6)",
-        "label_id_mapping": {v: k for k, v in label_map_dict.items()},
-    }
-    yaml_file_path = output_path + "/config_finetune.yaml"
-    with open(yaml_file_path, "w") as file:
-        yaml.dump(yaml_config_contents, file)
     # Create YAML file with training metadata
     yaml_additional_data_contents = {
         "num_images": len(json_annotation["images"]),
         "matters": diagram_matters,
         "model_id": model_id,
+        "num_classes": len(label_map_dict),
+        "label_id_mapping": {v: k for k, v in label_map_dict.items()},
     }
     yaml_file_path = output_path + "/training_metadata.yaml"
     with open(yaml_file_path, "w") as file:
         yaml.dump(yaml_additional_data_contents, file)
-
-
-def create_compress_file(model_id: str, output_path: str):
-    target_file = os.path.join(TENSORFLOW_PATH, f"{model_id}.tgz")
-    cmd = f"tar cfz {target_file} {output_path}"
-    subprocess.check_call(cmd.split(" "))
-    return target_file
 
 
 if __name__ == "__main__":
@@ -105,8 +90,18 @@ if __name__ == "__main__":
         "--diagram_matter",
         type=str,
         nargs="*",
-        help="""Matters of the diagram, at least two: 'P-Process', 'L-Piping', 'J-Instrument', 'H-HVAC',
-            'T-telecom', 'N-Structural', 'R-Mechanical', 'E-Electro', 'S-Safety'""",
+        help="""Matters of the diagram, at least two""",
+        choices=[
+            "P-Process",
+            "L-Piping",
+            "J-Instrument",
+            "H-HVAC",
+            "T-telecom",
+            "N-Structural",
+            "R-Mechanical",
+            "E-Electro",
+            "S-Safety",
+        ],
         default=None,
     )
     args = parser.parse_args()
@@ -166,8 +161,5 @@ if __name__ == "__main__":
 
     save_metadata_yaml(json_annotation, label_map_dict, output_path)
 
-    # training_tar_file = create_compress_file(model_id, output_path)
-
     cs = AzureBlobCloudStorage()
-    # cs.store_file(training_tar_file, f"{model_id}.tgz")
     cs.store_directory(output_path, model_id)

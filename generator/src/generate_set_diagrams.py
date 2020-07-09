@@ -76,9 +76,20 @@ if __name__ == "__main__":
         "--diagram_matter",
         type=str,
         nargs="*",
-        help="""Matters of the diagram, at least two: 'P-Process', 'L-Piping', 'J-Instrument', 'H-HVAC',
-        'T-telecom', 'N-Structural', 'R-Mechanical', 'E-Electro', 'S-Safety'""",
+        help="""Matters of the diagram, at least two""",
+        choices=[
+            "P-Process",
+            "L-Piping",
+            "J-Instrument",
+            "H-HVAC",
+            "T-telecom",
+            "N-Structural",
+            "R-Mechanical",
+            "E-Electro",
+            "S-Safety",
+        ],
         default=None,
+        required=True,
     )
     symbol_storage = SymbolStorage()
     dss = DiagramSymbolsStorage()

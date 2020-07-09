@@ -14,6 +14,7 @@ from config import (
     SYMBOL_DEBUG,
     DATA_PATH,
     SYMBOL_SOURCE_RESOLUTIONS,
+    DIAGRAM_SIZE,
 )
 import logging
 from fa2 import ForceAtlas2
@@ -88,8 +89,8 @@ class SymbolGenerator:
     ctbm: SymbolConfiguration
     DEFAULT_TEXT_SIZE = 15
     DEFAULT_TEXT_FONT = "font4.ttf"
-    ASSEMBLY_IMAGE_SIZE = (500, 500)
-    ASSEMBLY_IMAGE_OFFSET = (100, 100)
+    ASSEMBLY_IMAGE_SIZE = (400, 400)
+    ASSEMBLY_IMAGE_OFFSET = (40, 40)
 
     def __init__(self, ctbm: SymbolConfiguration):
         self.ctbm = ctbm
@@ -147,6 +148,12 @@ class SymbolGenerator:
         assemble_image.paste(symbol_image, offset)
         symbol.size_w, symbol.size_h = symbol_image.size
 
+        # Move symbol if it is going to be plotted outside the visible region
+        if symbol.x + symbol.size_w + self.ASSEMBLY_IMAGE_OFFSET[0] > DIAGRAM_SIZE[0]:
+            symbol.x = DIAGRAM_SIZE[0] - symbol.size_w - self.ASSEMBLY_IMAGE_OFFSET[0]
+        if symbol.y + symbol.size_h + self.ASSEMBLY_IMAGE_OFFSET[1] > DIAGRAM_SIZE[1]:
+            symbol.y = DIAGRAM_SIZE[1] - symbol.size_h - self.ASSEMBLY_IMAGE_OFFSET[1]
+
         self.inject_text(symbol, assemble_image, offset)
         if symbol.orientation > 0:
             assemble_image = assemble_image.rotate(symbol.orientation, expand=True)
@@ -154,9 +161,11 @@ class SymbolGenerator:
         # Paste the generated symbol in the diagram
         inverted_image = ImageOps.invert(assemble_image)
         assemble_image.putalpha(inverted_image)
+        print(symbol)
         original_image.paste(assemble_image, (symbol.x, symbol.y), mask=inverted_image)
         # Recalculate positioning after the paste [and rotation]
         self.recalculate_positions(symbol, offset)
+        print(symbol)
 
     def recalculate_positions(self, symbol: GenericSymbol, offset: Tuple[int, int]):
         if symbol.orientation == 90:
@@ -305,34 +314,39 @@ class SymbolPositioner:
         number_of_symbols: int, diagram_size: Tuple[int, int]
     ) -> List[Tuple[int, int]]:
 
-        forceatlas2 = ForceAtlas2(
-            # Behavior alternatives
-            outboundAttractionDistribution=True,  # Dissuade hubs
-            linLogMode=False,  # NOT IMPLEMENTED
-            adjustSizes=False,  # Prevent overlap (NOT IMPLEMENTED)
-            edgeWeightInfluence=1.0,
-            # Performance
-            jitterTolerance=0.1,  # Tolerance
-            barnesHutOptimize=True,
-            barnesHutTheta=1.2,
-            multiThreaded=False,  # NOT IMPLEMENTED
-            # Tuning
-            scalingRatio=2.0,
-            strongGravityMode=False,
-            gravity=0.5,
-            # Log
-            verbose=False,
-        )
-        G = np.identity(number_of_symbols)
-        positions = forceatlas2.forceatlas2(G, pos=None, iterations=50)
+        if number_of_symbols == 1:
+            positions = [
+                (diagram_size[0] // 2, diagram_size[1] // 2),
+            ]
+        else:
+            forceatlas2 = ForceAtlas2(
+                # Behavior alternatives
+                outboundAttractionDistribution=True,  # Dissuade hubs
+                linLogMode=False,  # NOT IMPLEMENTED
+                adjustSizes=False,  # Prevent overlap (NOT IMPLEMENTED)
+                edgeWeightInfluence=1.0,
+                # Performance
+                jitterTolerance=0.1,  # Tolerance
+                barnesHutOptimize=True,
+                barnesHutTheta=1.2,
+                multiThreaded=False,  # NOT IMPLEMENTED
+                # Tuning
+                scalingRatio=2.0,
+                strongGravityMode=False,
+                gravity=0.5,
+                # Log
+                verbose=False,
+            )
+            G = np.identity(number_of_symbols)
+            positions = forceatlas2.forceatlas2(G, pos=None, iterations=50)
 
-        x, y = zip(*positions)
-        x_range = max(x) - min(x)
-        y_range = max(y) - min(y)
-        dx, dy = (diagram_size[0] - 100, diagram_size[1] - 100)
-        x_ratio = dx / x_range
-        y_ratio = dy / y_range
-        x = (np.array(x) + np.abs(min(x))) * x_ratio
-        y = (np.array(y) + np.abs(min(y))) * y_ratio
-        positions = list(zip(x.astype(int), y.astype(int)))
+            x, y = zip(*positions)
+            x_range = max(x) - min(x) or 1
+            y_range = max(y) - min(y) or 1
+            dx, dy = (diagram_size[0], diagram_size[1])
+            x_ratio = dx / x_range
+            y_ratio = dy / y_range
+            xnp = (np.array(x) + np.abs(min(x))) * x_ratio
+            ynp = (np.array(y) + np.abs(min(y))) * y_ratio
+            positions = list(zip(xnp.astype(int), ynp.astype(int)))
         return positions
