@@ -44,7 +44,8 @@ if __name__ == "__main__":
     experiment_name = experiment_id
     experiment = Experiment(ws, name=experiment_name)
     script_params = {
-        "--data-folder": f"./https/storageaccountdatav9498/pub/{experiment_id}/{experiment_id}"
+        "--data_folder": f"./https/storageaccountdatav9498/pub/{experiment_id}/{experiment_id}",
+        "--experimenti_id": f"{experiment_id}",
     }
 
     # Estimator help: https://github.com/Azure/MachineLearningNotebooks/tree/master/how-to-use-azureml/training-with-deep-learning
@@ -60,3 +61,9 @@ if __name__ == "__main__":
 
     run = experiment.submit(estimator)
     print(run)
+
+    # Tensorboard for the training
+    # https://github.com/Azure/MachineLearningNotebooks/blob/master/how-to-use-azureml/training-with-deep-learning/export-run-history-to-tensorboard/export-run-history-to-tensorboard.ipynb
+
+    # Configure native distributed training
+    # https://docs.microsoft.com/en-gb/azure/machine-learning/how-to-train-tensorflow#distributed-training

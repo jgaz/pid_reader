@@ -2,3 +2,4 @@ tensorflow
 jupyter
 azureml-sdk[notebooks]
 pycocotools
+-e git+https://github.com/qubvel/efficientnet@e9fdd43857785fe5ccf3863915dcaf618b86849f#egg=efficientnet
