@@ -16,4 +16,8 @@ TRAINING_STORAGE_CONN_STR = os.getenv("AZURE_STORAGE_CONNECTION_STRING") or exit
     "AZURE_STORAGE_CONNECTION_STRING needed"
 )
 
+
+SRC_PATH = os.path.dirname(os.path.realpath(__file__))
+MODEL_PATH = os.path.join(os.path.dirname(SRC_PATH), "data", "models")
+
 LOGGING_LEVEL = logging.INFO

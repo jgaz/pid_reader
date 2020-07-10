@@ -1,9 +1,16 @@
+"""
+Train a model
+"""
 import argparse
+import os
 from typing import List
 
 import tensorflow.keras as tfkeras
+from config import MODEL_PATH
+from data import read_training_metadata
 
 from model import ModelFactory
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Training the network")
@@ -22,9 +29,12 @@ if __name__ == "__main__":
     experiment_id = args.experiment_id
     data_folder = args.data_folder
     print(f"Arguments: {experiment_id} {data_folder}")
+    training_metadata = read_training_metadata(data_folder)
 
     model_factory = ModelFactory()
-    model = model_factory.get_model(500, 100)
+    model = model_factory.get_model(
+        training_metadata["width"], training_metadata["num_classes"]
+    )
     print("Model retrieved")
     model.compile(
         optimizer="adam",  # learning rate will be set by LearningRateScheduler
@@ -36,21 +46,24 @@ if __name__ == "__main__":
     # replicas by the tf.data.Dataset API.
     # The best practice is to scale the batch size by the number of
     # replicas (cores). The learning rate should be increased as well.
-    TRAINING_SAMPLES = 1000
+    training_samples = training_metadata["num_images"]
     BATCH_SIZE = 64  # Gobal batch size.
     LEARNING_RATE = 0.01
     LEARNING_RATE_EXP_DECAY = 0.7
-    EPOCHS = 10
-    steps_per_epoch = TRAINING_SAMPLES // BATCH_SIZE
 
-    MODEL_PATH = ""
+    # Adjust 10 epochs to the total training samples we have
+    EPOCHS = 10
+    steps_per_epoch = training_samples // (BATCH_SIZE * EPOCHS)
+
+    current_model_path = os.path.join(MODEL_PATH, experiment_id)
     training_dataset: List = []
 
     lr_decay = tfkeras.callbacks.LearningRateScheduler(
         lambda epoch: LEARNING_RATE * LEARNING_RATE_EXP_DECAY ** epoch, verbose=True
     )
-
-    tensorboard_callback = tfkeras.callbacks.TensorBoard(MODEL_PATH, update_freq=100)
+    tensorboard_callback = tfkeras.callbacks.TensorBoard(
+        current_model_path, update_freq=100
+    )
 
     history = model.fit(
         training_dataset,
