@@ -2,6 +2,7 @@ import os
 import string
 from dataclasses import dataclass
 from enum import Enum
+from math import floor
 from random import randint, choice
 from typing import Tuple, Optional, Dict, List
 import pandas as pd
@@ -107,6 +108,7 @@ class SymbolGenerator:
         ]
 
         for text_position in text_positions:
+            logger.info("")
             text_box = self.generate_text_box(text_position, symbol)
             if text_box:
                 symbol.text_boxes += (text_box,)
@@ -117,10 +119,12 @@ class SymbolGenerator:
                 os.path.join(FONT_PATH, self.DEFAULT_TEXT_FONT), text_box.size
             )
             text_coords = (
-                text_box.x * symbol.size_w + offset[0],
-                text_box.y * symbol.size_h + offset[1],
+                floor(text_box.x * symbol.size_w + offset[0]),
+                floor(text_box.y * symbol.size_h + offset[1]),
             )
+            logger.info(f"Just about to draw text {text_coords} {text_box.chars}")
             draw.text(text_coords, text_box.chars, fill=0, font=font)
+            logger.info("Text drawn")
             text_box.size_w, text_box.size_h = draw.multiline_textsize(
                 text_box.chars, font=font
             )
@@ -158,11 +162,10 @@ class SymbolGenerator:
         # Paste the generated symbol in the diagram
         inverted_image = ImageOps.invert(assemble_image)
         assemble_image.putalpha(inverted_image)
-        logger.info(symbol)
+
         original_image.paste(assemble_image, (symbol.x, symbol.y), mask=inverted_image)
         # Recalculate positioning after the paste [and rotation]
         self.recalculate_positions(symbol, offset)
-        logger.info(symbol)
 
     def reposition_inside_visible(self, symbol: GenericSymbol) -> GenericSymbol:
         if (
