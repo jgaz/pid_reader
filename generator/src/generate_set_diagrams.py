@@ -4,9 +4,9 @@ Generates a set of diagrams
 import argparse
 import random
 from random import shuffle
-from typing import List
+from typing import List, Tuple
 from PIL import Image
-from config import SYMBOL_DEBUG, DIAGRAM_SIZE, NUMBER_OF_SYMBOLS, LOGGING_LEVEL
+from config import SYMBOL_DEBUG, LOGGING_LEVEL
 from metadata import (
     SymbolStorage,
     BlockedSymbolsStorage,
@@ -24,10 +24,12 @@ def generate_diagram(
     symbol_storage: SymbolStorage,
     dss: DiagramSymbolsStorage,
     diagram_matters: List[str],
+    diagram_size: Tuple[int, int],
+    symbols_per_diagram: int,
 ):
     possible_orientation = [90]
 
-    image_diagram = Image.new("LA", DIAGRAM_SIZE, 255)
+    image_diagram = Image.new("LA", diagram_size, 255)
     symbols = []
 
     for matter in diagram_matters:
@@ -41,10 +43,10 @@ def generate_diagram(
     shuffle(symbols)
     diagram_symbols = []
     ctbm = SymbolConfiguration()
-    symbol_generator = SymbolGenerator(ctbm=ctbm)
-    positions = SymbolPositioner.get_symbol_position(NUMBER_OF_SYMBOLS, DIAGRAM_SIZE)
+    symbol_generator = SymbolGenerator(ctbm=ctbm, diagram_size=diagram_size)
+    positions = SymbolPositioner.get_symbol_position(symbols_per_diagram, diagram_size)
 
-    for i in range(NUMBER_OF_SYMBOLS):
+    for i in range(symbols_per_diagram):
         symbol = symbols[i % len(symbols)]
         coords = positions[i]
         orientation = possible_orientation[0] if i % 4 == 0 else 0
@@ -65,6 +67,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate a set of diagrams and the input for the NNet"
     )
+
     parser.add_argument(
         "--number_diagrams",
         type=int,
@@ -72,6 +75,15 @@ if __name__ == "__main__":
         help="Number of diagrams to produce",
         default=[100],
     )
+
+    parser.add_argument(
+        "--symbols_per_diagram",
+        type=int,
+        nargs=1,
+        help="Symbols per diagram",
+        default=[10],
+    )
+
     parser.add_argument(
         "--diagram_matter",
         type=str,
@@ -91,10 +103,20 @@ if __name__ == "__main__":
         default=None,
         required=True,
     )
+
+    parser.add_argument(
+        "--diagram_size",
+        type=int,
+        nargs=2,
+        help="Diagram size: 100 100",
+        default=[1000, 1000],
+    )
     symbol_storage = SymbolStorage()
     dss = DiagramSymbolsStorage()
     args = parser.parse_args()
     number_diagrams = int(args.number_diagrams[0])
+    symbols_per_diagram = int(args.symbols_per_diagram[0])
+    diagram_size = args.diagram_size
 
     if args.diagram_matter:
         if type(args.diagram_matter) == list:
@@ -107,4 +129,10 @@ if __name__ == "__main__":
 
     for i in range(number_diagrams):
         logger.info(f"Generating {i} out of {number_diagrams}")
-        generate_diagram(symbol_storage, dss, diagram_matters)
+        generate_diagram(
+            symbol_storage,
+            dss,
+            diagram_matters,
+            diagram_size=diagram_size,
+            symbols_per_diagram=symbols_per_diagram,
+        )

@@ -6,8 +6,8 @@ import pickle
 import PIL
 import pandas as pd
 from dataclasses import dataclass
-from typing import Tuple, List, Dict, TypedDict, Any
-from config import METADATA_PATH, DIAGRAM_PATH, DIAGRAM_SIZE
+from typing import Tuple, List, TypedDict, Any
+from config import METADATA_PATH, DIAGRAM_PATH
 import tensorflow.compat.v1 as tf
 
 import logging
@@ -192,14 +192,17 @@ class TensorflowStorage:
         with tf.gfile.GFile(full_path, "rb") as fid:
             original_encoded_img = fid.read()
         # Save into jpeg
+        # TODO: Do not transform into 3 channels, keep one channel in the PNG
         encoded_img_io = io.BytesIO(original_encoded_img)
         image = PIL.Image.open(encoded_img_io).convert("RGB")
         with io.BytesIO() as output:
             image.save(output, "JPEG")
             encoded_img = output.getvalue()
         key = hashlib.sha256(encoded_img).hexdigest()
-
-        width, height = DIAGRAM_SIZE
+        width, height = (
+            100,
+            100,
+        )  # Todo: Fix this one too to get the value from the image
         file_name = full_path.split("/")[-1]
         image_id = file_idx
 

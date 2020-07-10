@@ -14,7 +14,6 @@ from config import (
     SYMBOL_DEBUG,
     DATA_PATH,
     SYMBOL_SOURCE_RESOLUTIONS,
-    DIAGRAM_SIZE,
 )
 import logging
 from fa2 import ForceAtlas2
@@ -90,10 +89,11 @@ class SymbolGenerator:
     DEFAULT_TEXT_SIZE = 15
     DEFAULT_TEXT_FONT = "font4.ttf"
     ASSEMBLY_IMAGE_SIZE = (400, 400)
-    ASSEMBLY_IMAGE_OFFSET = (40, 40)
+    ASSEMBLY_IMAGE_OFFSET = (ASSEMBLY_IMAGE_SIZE[0] // 10, ASSEMBLY_IMAGE_SIZE[1] // 10)
 
-    def __init__(self, ctbm: SymbolConfiguration):
+    def __init__(self, ctbm: SymbolConfiguration, diagram_size: Tuple[int, int]):
         self.ctbm = ctbm
+        self.DIAGRAM_SIZE = diagram_size
 
     def inject_text(
         self, symbol: GenericSymbol, diagram_image: Image.Image, offset: Tuple[int, int]
@@ -130,7 +130,7 @@ class SymbolGenerator:
         return symbol, diagram_image
 
     def inject_symbol(self, symbol: GenericSymbol, original_image: Image):
-        # Fetch the image in approrpiate format
+        # Fetch the image in appropriate format
         text_box_config = self.ctbm.get_config(symbol)
         resolution = text_box_config.resol if text_box_config else 1
         image_quality_prefix = SYMBOL_SOURCE_RESOLUTIONS[resolution]
@@ -149,10 +149,7 @@ class SymbolGenerator:
         symbol.size_w, symbol.size_h = symbol_image.size
 
         # Move symbol if it is going to be plotted outside the visible region
-        if symbol.x + symbol.size_w + self.ASSEMBLY_IMAGE_OFFSET[0] > DIAGRAM_SIZE[0]:
-            symbol.x = DIAGRAM_SIZE[0] - symbol.size_w - self.ASSEMBLY_IMAGE_OFFSET[0]
-        if symbol.y + symbol.size_h + self.ASSEMBLY_IMAGE_OFFSET[1] > DIAGRAM_SIZE[1]:
-            symbol.y = DIAGRAM_SIZE[1] - symbol.size_h - self.ASSEMBLY_IMAGE_OFFSET[1]
+        symbol = self.reposition_inside_visible(symbol)
 
         self.inject_text(symbol, assemble_image, offset)
         if symbol.orientation > 0:
@@ -161,11 +158,46 @@ class SymbolGenerator:
         # Paste the generated symbol in the diagram
         inverted_image = ImageOps.invert(assemble_image)
         assemble_image.putalpha(inverted_image)
-        print(symbol)
+        logger.info(symbol)
         original_image.paste(assemble_image, (symbol.x, symbol.y), mask=inverted_image)
         # Recalculate positioning after the paste [and rotation]
         self.recalculate_positions(symbol, offset)
-        print(symbol)
+        logger.info(symbol)
+
+    def reposition_inside_visible(self, symbol: GenericSymbol) -> GenericSymbol:
+        if (
+            symbol.orientation > 0
+        ):  # This is problematic as the full image is rotated, adding a lot of padding
+            extra_padding = (
+                self.ASSEMBLY_IMAGE_SIZE[1]
+                - symbol.size_w
+                - self.ASSEMBLY_IMAGE_OFFSET[1]
+            )
+            if symbol.y + extra_padding > self.DIAGRAM_SIZE[1] - symbol.size_w:
+                symbol.y -= extra_padding
+            if (
+                symbol.x + symbol.size_h + self.ASSEMBLY_IMAGE_OFFSET[0]
+                > self.DIAGRAM_SIZE[0]
+            ):
+                symbol.x = (
+                    self.DIAGRAM_SIZE[0] - symbol.size_h - self.ASSEMBLY_IMAGE_OFFSET[0]
+                )
+        else:
+            if (
+                symbol.x + symbol.size_w + self.ASSEMBLY_IMAGE_OFFSET[0]
+                > self.DIAGRAM_SIZE[0]
+            ):
+                symbol.x = (
+                    self.DIAGRAM_SIZE[0] - symbol.size_w - self.ASSEMBLY_IMAGE_OFFSET[0]
+                )
+            if (
+                symbol.y + symbol.size_h + self.ASSEMBLY_IMAGE_OFFSET[1]
+                > self.DIAGRAM_SIZE[1]
+            ):
+                symbol.y = (
+                    self.DIAGRAM_SIZE[1] - symbol.size_h - self.ASSEMBLY_IMAGE_OFFSET[1]
+                )
+        return symbol
 
     def recalculate_positions(self, symbol: GenericSymbol, offset: Tuple[int, int]):
         if symbol.orientation == 90:
@@ -316,7 +348,7 @@ class SymbolPositioner:
 
         if number_of_symbols == 1:
             positions = [
-                (diagram_size[0] // 2, diagram_size[1] // 2),
+                (randint(0, diagram_size[0]), randint(0, diagram_size[1])),
             ]
         else:
             forceatlas2 = ForceAtlas2(
