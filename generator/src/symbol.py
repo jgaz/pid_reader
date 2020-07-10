@@ -108,7 +108,7 @@ class SymbolGenerator:
         ]
 
         for text_position in text_positions:
-            logger.info("")
+
             text_box = self.generate_text_box(text_position, symbol)
             if text_box:
                 symbol.text_boxes += (text_box,)
@@ -122,9 +122,9 @@ class SymbolGenerator:
                 floor(text_box.x * symbol.size_w + offset[0]),
                 floor(text_box.y * symbol.size_h + offset[1]),
             )
-            logger.info(f"Just about to draw text {text_coords} {text_box.chars}")
+            # Bug: Fedora has a problem in the library, it throws core dumps, Debian does fine
             draw.text(text_coords, text_box.chars, fill=0, font=font)
-            logger.info("Text drawn")
+
             text_box.size_w, text_box.size_h = draw.multiline_textsize(
                 text_box.chars, font=font
             )
