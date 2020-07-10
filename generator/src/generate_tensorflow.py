@@ -62,7 +62,10 @@ def save_metadata_yaml(json_annotation, label_map_dict, output_path):
         f"Processed {idx + 1} files, obtained {len(json_annotation['images'])} images in json"
     )
     logger.info(f"Obtained {len(json_annotation['annotations'])} annotations in json")
-
+    size = (
+        json_annotation["images"][0]["width"],
+        json_annotation["images"][0]["height"],
+    )
     # Save Json file
     TensorflowStorage.reannotate_ids(json_annotation)
     json_file_path = output_path + "/json_pascal.json"
@@ -76,6 +79,8 @@ def save_metadata_yaml(json_annotation, label_map_dict, output_path):
         "model_id": model_id,
         "num_classes": len(label_map_dict),
         "label_id_mapping": {v: k for k, v in label_map_dict.items()},
+        "height": size[0],
+        "width": size[1],
     }
     yaml_file_path = output_path + "/training_metadata.yaml"
     with open(yaml_file_path, "w") as file:
