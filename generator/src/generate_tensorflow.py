@@ -132,7 +132,7 @@ if __name__ == "__main__":
         for file_idx, file_name in enumerate(diagram_path.glob("*.pickle"))
     ]
 
-    model_id = hashlib.sha256(str.encode(f"{diagram_matters}{len(params)}")).hexdigest()
+    model_id = hashlib.sha1(str.encode(f"{diagram_matters}{len(params)}")).hexdigest()
     output_path = os.path.join(TENSORFLOW_PATH, model_id)
     try:
         os.mkdir(output_path)

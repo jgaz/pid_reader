@@ -191,18 +191,10 @@ class TensorflowStorage:
 
         with tf.gfile.GFile(full_path, "rb") as fid:
             original_encoded_img = fid.read()
-        # Save into jpeg
-        # TODO: Do not transform into 3 channels, keep one channel in the PNG
         encoded_img_io = io.BytesIO(original_encoded_img)
-        image = PIL.Image.open(encoded_img_io).convert("RGB")
-        with io.BytesIO() as output:
-            image.save(output, "JPEG")
-            encoded_img = output.getvalue()
-        key = hashlib.sha256(encoded_img).hexdigest()
-        width, height = (
-            100,
-            100,
-        )  # Todo: Fix this one too to get the value from the image
+        image = PIL.Image.open(encoded_img_io)
+        key = hashlib.sha256(original_encoded_img).hexdigest()
+        width, height = image.size
         file_name = full_path.split("/")[-1]
         image_id = file_idx
 
@@ -236,9 +228,6 @@ class TensorflowStorage:
             classes_text.append(symbol.name.encode("utf8"))
             classes.append(label_map_dict[symbol.name])
 
-            # TODO: what is pose?
-            # poses.append(obj['pose'].encode('utf8'))
-
             if ann_json_dict:
                 abs_xmin = int(symbol.x)
                 abs_ymin = int(symbol.y)
@@ -268,7 +257,7 @@ class TensorflowStorage:
                         str(image_id).encode("utf8")
                     ),
                     "image/key/sha256": self._bytes_feature(key.encode("utf8")),
-                    "image/encoded": self._bytes_feature(encoded_img),
+                    "image/encoded": self._bytes_feature(original_encoded_img),
                     "image/format": self._bytes_feature("png".encode("utf8")),
                     "image/object/bbox/xmin": self._float_list_feature(xmin),
                     "image/object/bbox/xmax": self._float_list_feature(xmax),
