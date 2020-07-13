@@ -1,5 +1,7 @@
 import argparse
 import logging
+import os
+
 from azureml.train.dnn import TensorFlow
 from azureml.core import Experiment
 
@@ -38,7 +40,6 @@ if __name__ == "__main__":
     # Make sure training dataset exists
     dataset_name = f"a_{experiment_id}"
     dataset = get_or_create_dataset(ws, files, dataset_name)
-    # dataset.download(target_path=".", overwrite=True)
 
     # Create the experiment
     experiment_name = experiment_id
@@ -46,6 +47,9 @@ if __name__ == "__main__":
 
     script_params = {
         "-d": dataset.as_named_input(dataset_name).as_download(),
+        "--extra_path": os.path.join(
+            f"https/{ab.storage_account}.blob.core.windows.net/pub", f"{experiment_id}/"
+        ),
         "-e": f"{experiment_id}",
     }
 

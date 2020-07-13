@@ -23,11 +23,17 @@ if __name__ == "__main__":
         type=str,
         help="""Where the training data is""",
     )
+    parser.add_argument(
+        "--extra_path", required=True, type=str, help="""Where the training data is""",
+    )
 
     args = parser.parse_args()
     experiment_id = args.experiment_id
     data_folder = args.data_folder
-    print(f"Arguments: {experiment_id} {data_folder}")
+    extra_path = args.extra_path
+
+    data_folder = os.path.join(data_folder, extra_path)
+    print(f"Getting data from: {data_folder}")
     training_metadata = read_training_metadata(data_folder)
 
     model_factory = ModelFactory()
@@ -36,7 +42,7 @@ if __name__ == "__main__":
     )
     model.compile(
         optimizer="adam",  # learning rate will be set by LearningRateScheduler
-        loss="categorical_crossentropy",
+        loss="sparse_categorical_crossentropy",
         metrics=["accuracy"],
     )
 
