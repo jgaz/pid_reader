@@ -104,7 +104,7 @@ def read_data(
 
     def _decode_image(record):
         """Decodes the image and set its static shape."""
-        image = tf.io.decode_image(record["image/encoded"], channels=1)
+        image = tf.io.decode_png(record["image/encoded"], channels=1)
         image = _normalize_image(image)
         # image.set_shape([record['image/width'], record['image/height'], 1])
         return image
@@ -118,6 +118,19 @@ def read_data(
     ds = ds.map(
         _select_data_from_record, num_parallel_calls=tf.data.experimental.AUTOTUNE
     )
+
     ds = ds.batch(batch_size, drop_remainder=is_training)
     ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
     return ds
+
+
+def show_sample(ds):
+    inputs = list(ds.take(10).as_numpy_iterator())
+    import numpy
+    import pandas as pd
+
+    for input in inputs:
+        print(
+            f"element: image:{input[0].shape} image_min:{numpy.min(input[0])} label:{input[1].shape} label_value:{input[1]}"
+        )
+        print(pd.value_counts(input[0].flat))
