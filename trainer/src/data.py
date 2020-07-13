@@ -3,6 +3,7 @@ from typing import List
 
 import yaml
 from azureml.core import Dataset, Workspace
+import tensorflow as tf
 import logging
 
 from config import LOGGING_LEVEL
@@ -35,32 +36,60 @@ def read_training_metadata(training_path: str):
     return training_metadata
 
 
-def read_data():
-    """
-    tf.train.Example(
-            features=tf.train.Features(
-                feature={
-                    "image/height": self._int64_feature(height),
-                    "image/width": self._int64_feature(width),
-                    "image/filename": self._bytes_feature(file_name.encode("utf8")),
-                    "image/source_id": self._bytes_feature(
-                        str(image_id).encode("utf8")
-                    ),
-                    "image/key/sha256": self._bytes_feature(key.encode("utf8")),
-                    "image/encoded": self._bytes_feature(original_encoded_img),
-                    "image/format": self._bytes_feature("png".encode("utf8")),
-                    "image/object/bbox/xmin": self._float_list_feature(xmin),
-                    "image/object/bbox/xmax": self._float_list_feature(xmax),
-                    "image/object/bbox/ymin": self._float_list_feature(ymin),
-                    "image/object/bbox/ymax": self._float_list_feature(ymax),
-                    "image/object/class/text": self._bytes_list_feature(classes_text),
-                    "image/object/class/label": self._int64_list_feature(classes),
-                    "image/object/difficult": self._int64_list_feature(difficult_obj),
-                    "image/object/truncated": self._int64_list_feature(truncated),
-                    "image/object/view": self._bytes_list_feature(poses),
-                }
-            )
-        )
-    :return:
-    """
-    pass
+def read_data(
+    data_folder: str, is_training: bool = True, batch_size: int = 8
+) -> tf.data.Dataset:
+    files_dataset = tf.data.Dataset.list_files(f"{data_folder}*.tfrecord")
+    ds: tf.data.Dataset = tf.data.TFRecordDataset(
+        files_dataset,
+        compression_type=None,
+        buffer_size=None,  # Set it if you need a buffer I/O saving
+        num_parallel_reads=None,  # If IO bound, set this > 1
+    )
+
+    if is_training:
+        ds = ds.shuffle(100)
+        ds = ds.repeat()
+
+    # Map from example into viable fit input
+    def _decode_record(record):
+        feature = {
+            "image/filename": tf.io.FixedLenFeature((), tf.string),
+            "image/format": tf.io.FixedLenFeature((), tf.string),
+            "image/key/sha256": tf.io.FixedLenFeature((), tf.string),
+            "image/encoded": tf.io.FixedLenFeature((), tf.string),
+            "image/source_id": tf.io.FixedLenFeature((), tf.string, ""),
+            "image/height": tf.io.FixedLenFeature((), tf.int64, -1),
+            "image/width": tf.io.FixedLenFeature((), tf.int64, -1),
+            "image/object/bbox/xmin": tf.io.VarLenFeature(tf.float32),
+            "image/object/bbox/xmax": tf.io.VarLenFeature(tf.float32),
+            "image/object/bbox/ymin": tf.io.VarLenFeature(tf.float32),
+            "image/object/bbox/ymax": tf.io.VarLenFeature(tf.float32),
+            "image/object/class/label": tf.io.VarLenFeature(tf.int64),
+            "image/object/is_crowd": tf.io.VarLenFeature(tf.int64),
+            "image/object/class/text": tf.io.VarLenFeature(tf.string),
+            "image/object/difficult": tf.io.VarLenFeature(tf.int64),
+            "image/object/truncated": tf.io.VarLenFeature(tf.int64),
+            "image/object/view": tf.io.VarLenFeature(tf.string),
+        }
+
+        return tf.io.parse_single_example(record, feature)
+
+    def _decode_image(record):
+        """Decodes the image and set its static shape."""
+        image = tf.io.decode_image(record["image/encoded"], channels=1)
+        # image.set_shape([record['image/width'], record['image/height'], 1])
+        return image
+
+    def _select_data_from_record(record):
+        x = _decode_image(record=record)
+        y = record["image/object/class/label"]
+        return (x, y)
+
+    ds = ds.map(_decode_record, num_parallel_calls=tf.data.experimental.AUTOTUNE)
+    ds = ds.map(
+        _select_data_from_record, num_parallel_calls=tf.data.experimental.AUTOTUNE
+    )
+    ds = ds.batch(batch_size, drop_remainder=is_training)
+    ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
+    return ds

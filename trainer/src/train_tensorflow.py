@@ -3,11 +3,10 @@ Train a model
 """
 import argparse
 import os
-from typing import List
-
+import tensorflow as tf
 import tensorflow.keras as tfkeras
 from config import MODEL_PATH
-from data import read_training_metadata
+from data import read_training_metadata, read_data
 
 from model import ModelFactory
 
@@ -56,7 +55,9 @@ if __name__ == "__main__":
     steps_per_epoch = training_samples // (BATCH_SIZE * EPOCHS)
 
     current_model_path = os.path.join(MODEL_PATH, experiment_id)
-    training_dataset: List = []
+    training_dataset: tf.data.Dataset = read_data(
+        data_folder, is_training=True, batch_size=BATCH_SIZE
+    )
 
     lr_decay = tfkeras.callbacks.LearningRateScheduler(
         lambda epoch: LEARNING_RATE * LEARNING_RATE_EXP_DECAY ** epoch, verbose=True
