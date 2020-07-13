@@ -7,13 +7,12 @@ import os
 from pathlib import Path
 import json
 import yaml
-from typing import List, Dict, Tuple
+from typing import Dict, Tuple
 from config import DIAGRAM_PATH, LOGGING_LEVEL, TENSORFLOW_PATH
 import logging
 from metadata import (
     DiagramSymbolsStorage,
     TensorflowStorage,
-    SymbolStorage,
     JsonTrainingObject,
 )
 import multiprocessing
@@ -25,14 +24,11 @@ logging.basicConfig(level=LOGGING_LEVEL)
 logger = logging.getLogger(__name__)
 
 
-def get_categories_map(categories: List[str]) -> Dict[str, int]:
+def get_categories_map(data_path: str) -> Dict[str, int]:
     # Get the object names and Ids
-    ss = SymbolStorage()
-    df = ss.get_dataframe()
-    df = df[df.matter.isin(categories)]
-    my_map = df.name.to_dict()
-    # Reverse the mapping, resulting in name->Id
-    return {v: k for k, v in my_map.items()}
+    classes_filename = os.path.join(data_path, "classes.json")
+    dictionary = json.load(open(classes_filename, "r"))
+    return dictionary
 
 
 def process_diagram(params) -> Tuple[tf.train.Example, JsonTrainingObject]:
@@ -117,8 +113,8 @@ if __name__ == "__main__":
             diagram_matters = [args.diagram_matter]
     else:
         exit(-1)
-
-    label_map_dict = get_categories_map(diagram_matters)
+    diagram_path = Path(DIAGRAM_PATH)
+    label_map_dict = get_categories_map(str(diagram_path))
     logger.info(f"Obtained {len(label_map_dict)} label categories")
 
     json_annotation: JsonTrainingObject = {
@@ -131,7 +127,6 @@ if __name__ == "__main__":
         ],
     }
 
-    diagram_path = Path(DIAGRAM_PATH)
     params = [
         (file_idx, file_name, label_map_dict)
         for file_idx, file_name in enumerate(diagram_path.glob("*.pickle"))
@@ -163,6 +158,13 @@ if __name__ == "__main__":
     pool.join()
     for writer in writers:
         writer.close()
+
+    # Spare one shard for validation
+    validation_path = output_path + "/validation.tfrecord"
+    os.rename(
+        output_path + "/%05d-of-%05d.tfrecord" % (num_shards - 1, num_shards),
+        validation_path,
+    )
 
     save_metadata_yaml(json_annotation, label_map_dict, output_path)
 
