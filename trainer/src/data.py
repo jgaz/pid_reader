@@ -124,7 +124,11 @@ def read_data(
     return ds
 
 
-def show_sample(ds):
+def show_sample(ds: tf.data.Dataset):
+    """
+    Prints out interesting information about the example used for training
+    :param ds: tf.data.Dataset
+    """
     inputs = list(ds.take(10).as_numpy_iterator())
     import numpy
     import pandas as pd
