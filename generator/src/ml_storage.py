@@ -3,7 +3,6 @@ import re
 from typing import List
 
 from azure.storage.blob import BlobServiceClient
-from config import TRAINING_STORAGE_CONN_STR
 
 
 class CloudStorage:
@@ -13,9 +12,13 @@ class CloudStorage:
 
 class AzureBlobCloudStorage(CloudStorage):
     CONTAINER_NAME = "pub"
+    # Storage account for training data
+    TRAINING_STORAGE_CONN_STR = os.getenv("AZURE_STORAGE_CONNECTION_STRING") or exit(
+        "AZURE_STORAGE_CONNECTION_STRING needed"
+    )
 
     def __init__(self):
-        self.connect_str = TRAINING_STORAGE_CONN_STR
+        self.connect_str = self.TRAINING_STORAGE_CONN_STR
         self.storage_account = re.search(r"AccountName=(.*?);", self.connect_str).group(
             1
         )
