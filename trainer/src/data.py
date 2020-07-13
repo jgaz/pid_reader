@@ -73,7 +73,20 @@ def read_data(
             "image/object/view": tf.io.VarLenFeature(tf.string),
         }
 
-        return tf.io.parse_single_example(record, feature)
+        parsed_tensors = tf.io.parse_single_example(record, feature)
+
+        # Turn tensors in to dense so it can be fed into the model
+        for k in parsed_tensors:
+            if isinstance(parsed_tensors[k], tf.SparseTensor):
+                if parsed_tensors[k].dtype == tf.string:
+                    parsed_tensors[k] = tf.sparse.to_dense(
+                        parsed_tensors[k], default_value=""
+                    )
+                else:
+                    parsed_tensors[k] = tf.sparse.to_dense(
+                        parsed_tensors[k], default_value=0
+                    )
+        return parsed_tensors
 
     def _decode_image(record):
         """Decodes the image and set its static shape."""
