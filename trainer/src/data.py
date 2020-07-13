@@ -88,9 +88,24 @@ def read_data(
                     )
         return parsed_tensors
 
+    def _normalize_image(image):
+        """Normalize the image to zero mean and unit variance."""
+        image = tf.image.convert_image_dtype(image, dtype=tf.float32)
+        offset = tf.constant([0.485])
+        offset = tf.expand_dims(offset, axis=0)
+        offset = tf.expand_dims(offset, axis=0)
+        image -= offset
+
+        scale = tf.constant([0.229])
+        scale = tf.expand_dims(scale, axis=0)
+        scale = tf.expand_dims(scale, axis=0)
+        image /= scale
+        return image
+
     def _decode_image(record):
         """Decodes the image and set its static shape."""
         image = tf.io.decode_image(record["image/encoded"], channels=1)
+        image = _normalize_image(image)
         # image.set_shape([record['image/width'], record['image/height'], 1])
         return image
 
