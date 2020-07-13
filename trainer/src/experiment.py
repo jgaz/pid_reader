@@ -44,8 +44,8 @@ if __name__ == "__main__":
     experiment_name = experiment_id
     experiment = Experiment(ws, name=experiment_name)
     script_params = {
-        "--data_folder": f"./https/storageaccountdatav9498/pub/{experiment_id}/{experiment_id}",
-        "--experimenti_id": f"{experiment_id}",
+        "-d": f"./https/storageaccountdatav9498/pub/{experiment_id}/{experiment_id}",
+        "-e": f"{experiment_id}",
     }
 
     # Estimator help: https://github.com/Azure/MachineLearningNotebooks/tree/master/how-to-use-azureml/training-with-deep-learning

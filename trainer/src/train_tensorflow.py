@@ -34,7 +34,6 @@ if __name__ == "__main__":
     model = model_factory.get_model(
         training_metadata["width"], training_metadata["num_classes"]
     )
-    print("Model retrieved")
     model.compile(
         optimizer="adam",  # learning rate will be set by LearningRateScheduler
         loss="categorical_crossentropy",
