@@ -49,5 +49,5 @@ class AzureBlobCloudStorage(CloudStorage):
             container=self.CONTAINER_NAME
         )
         files = container_client.list_blobs(name_starts_with=path)
-        blob_path = f"https://{self.storage_account}.core.windows.net/{self.CONTAINER_NAME}/{path}/"
+        blob_path = f"https://{self.storage_account}.blob.core.windows.net/{self.CONTAINER_NAME}/"
         return [blob_path + x["name"] for x in files]
