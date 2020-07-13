@@ -34,17 +34,18 @@ if __name__ == "__main__":
     # Get the list of files from the blob
     ab = AzureBlobCloudStorage()
     files = ab.list_files(experiment_id)
-    logger.info(f"Found {len(files)} files")
 
     # Make sure training dataset exists
-    dataset = get_or_create_dataset(ws, files, experiment_id)
-    dataset.download(target_path=".", overwrite=True)
+    dataset_name = f"a_{experiment_id}"
+    dataset = get_or_create_dataset(ws, files, dataset_name)
+    # dataset.download(target_path=".", overwrite=True)
 
     # Create the experiment
     experiment_name = experiment_id
     experiment = Experiment(ws, name=experiment_name)
+
     script_params = {
-        "-d": f"./https/storageaccountdatav9498/pub/{experiment_id}/{experiment_id}",
+        "-d": dataset.as_named_input(dataset_name).as_download(),
         "-e": f"{experiment_id}",
     }
 
