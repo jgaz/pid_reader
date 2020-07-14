@@ -89,8 +89,7 @@ if __name__ == "__main__":
                 monitor="val_loss",
                 save_best_only=True,
                 save_weights_only=False,
-                mode="min",
-                period=1,
+                mode="auto",
             ),
         ],
     )
