@@ -3,7 +3,7 @@ import logging
 import os
 
 from azureml.train.dnn import TensorFlow
-from azureml.core import Experiment
+from azureml.core import Experiment, Run
 
 from compute import get_or_create_workspace
 from config import (
@@ -19,6 +19,23 @@ from ml_storage import AzureBlobCloudStorage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(LOGGING_LEVEL)
+
+
+def run_details(run: Run):
+    print(run.get_details())
+    print(run.get_metrics())
+    print(run.get_file_names())
+
+
+def get_model(run: Run):
+    os.makedirs("./model", exist_ok=True)
+
+    for f in run.get_file_names():
+        if f.startswith("outputs/model"):
+            output_file_path = os.path.join("./model", f.split("/")[-1])
+            print("Downloading from {} to {} ...".format(f, output_file_path))
+            run.download_file(name=f, output_file_path=output_file_path)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a training experiment in AzureML")
@@ -70,8 +87,13 @@ if __name__ == "__main__":
         conda_packages=["cudatoolkit=10.1"],  # This allows Tensorflow 2.2
     )
 
-    run = experiment.submit(estimator)
-    print(run)
+    run: Run = experiment.submit(estimator)
+
+    run.wait_for_completion(show_output=True)
+
+    run_details(run)
+
+    get_model(run)
 
     # Tensorboard for the training
     # https://github.com/Azure/MachineLearningNotebooks/blob/master/how-to-use-azureml/training-with-deep-learning/export-run-history-to-tensorboard/export-run-history-to-tensorboard.ipynb
