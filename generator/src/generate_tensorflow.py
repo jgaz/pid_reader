@@ -163,7 +163,10 @@ if __name__ == "__main__":
 
     # Spare one chunk for validation
     validation_path = os.path.join(output_path, "validation")
-    os.mkdir(validation_path)
+    try:
+        os.mkdir(validation_path)
+    except FileExistsError:
+        pass
     validation_filename = os.path.join(validation_path, "validation.tfrecord")
     os.replace(
         output_path + "/%05d-of-%05d.tfrecord" % (num_shards - 1, num_shards),

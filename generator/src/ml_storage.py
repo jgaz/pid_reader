@@ -40,7 +40,11 @@ class AzureBlobCloudStorage(CloudStorage):
         for r, d, f in os.walk(path):
             if f:
                 for file in f:
-                    file_path_on_azure = os.path.join(blob_name, file)
+                    # Terrible hack for validation folder
+                    if re.findall("validation", r):
+                        file_path_on_azure = os.path.join(blob_name, "validation", file)
+                    else:
+                        file_path_on_azure = os.path.join(blob_name, file)
                     file_path_on_local = os.path.join(r, file)
                     self.store_file(file_path_on_local, file_path_on_azure)
 
