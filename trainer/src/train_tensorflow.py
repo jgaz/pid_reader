@@ -5,7 +5,7 @@ import argparse
 import os
 import tensorflow as tf
 import tensorflow.keras as tfkeras
-from config import MODEL_PATH
+from config import MODEL_PATH, TENSORBOARD_PATH
 from data import read_training_metadata, read_data
 
 from model import ModelFactory
@@ -33,7 +33,6 @@ if __name__ == "__main__":
     extra_path = args.extra_path
 
     data_folder = os.path.join(data_folder, extra_path)
-    print(f"Getting data from: {data_folder}")
     training_metadata = read_training_metadata(data_folder)
 
     model_factory = ModelFactory()
@@ -71,9 +70,18 @@ if __name__ == "__main__":
     )
 
     os.makedirs(MODEL_PATH, exist_ok=True)
-    current_model_path = os.path.join(MODEL_PATH, experiment_id)
+    os.makedirs(TENSORBOARD_PATH, exist_ok=True)
+
     tensorboard_callback = tfkeras.callbacks.TensorBoard(
-        current_model_path, update_freq=100
+        TENSORBOARD_PATH, update_freq="epoch"
+    )
+
+    checkpoint_callback = tfkeras.callbacks.ModelCheckpoint(
+        MODEL_PATH,
+        monitor="val_loss",
+        save_best_only=True,
+        save_weights_only=False,
+        mode="auto",
     )
 
     history = model.fit(
@@ -81,15 +89,5 @@ if __name__ == "__main__":
         validation_data=validation_dataset,
         steps_per_epoch=steps_per_epoch,
         epochs=EPOCHS,
-        callbacks=[
-            lr_decay,
-            tensorboard_callback,
-            tfkeras.callbacks.ModelCheckpoint(
-                current_model_path,
-                monitor="val_loss",
-                save_best_only=True,
-                save_weights_only=False,
-                mode="auto",
-            ),
-        ],
+        callbacks=[lr_decay, tensorboard_callback, checkpoint_callback],
     )

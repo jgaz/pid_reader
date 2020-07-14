@@ -13,5 +13,6 @@ GPU_CLUSTER_NAME = "gpu-cluster"
 
 SRC_PATH = os.path.dirname(os.path.realpath(__file__))
 MODEL_PATH = "outputs/model"  # AzureML puts its stuff there
+TENSORBOARD_PATH = "outputs/tensorboard"
 
 LOGGING_LEVEL = logging.INFO
