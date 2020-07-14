@@ -50,7 +50,7 @@ if __name__ == "__main__":
     # replicas by the tf.data.Dataset API.
     # The best practice is to scale the batch size by the number of
     # replicas (cores). The learning rate should be increased as well.
-    training_samples = training_metadata["num_images"]
+    training_samples = training_metadata["num_images_training"]
     BATCH_SIZE = 32  # Gobal batch size.
     LEARNING_RATE = 0.01
     LEARNING_RATE_EXP_DECAY = 0.7
@@ -63,6 +63,10 @@ if __name__ == "__main__":
     training_dataset: tf.data.Dataset = read_data(
         data_folder, is_training=True, batch_size=BATCH_SIZE
     )
+    validation_data_folder = os.path.join(data_folder, "validation")
+    validation_dataset: tf.data.Dataset = read_data(
+        validation_data_folder, is_training=False, batch_size=BATCH_SIZE
+    )
 
     lr_decay = tfkeras.callbacks.LearningRateScheduler(
         lambda epoch: LEARNING_RATE * LEARNING_RATE_EXP_DECAY ** epoch, verbose=True
@@ -73,6 +77,7 @@ if __name__ == "__main__":
 
     history = model.fit(
         training_dataset,
+        validation_data=validation_dataset,
         steps_per_epoch=steps_per_epoch,
         epochs=EPOCHS,
         callbacks=[
