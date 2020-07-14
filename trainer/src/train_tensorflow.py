@@ -43,7 +43,7 @@ if __name__ == "__main__":
     model.compile(
         optimizer="adam",  # learning rate will be set by LearningRateScheduler
         loss="sparse_categorical_crossentropy",
-        metrics=["accuracy"],
+        metrics=["sparse_categorical_accuracy"],
     )
 
     # The global batch size will be automatically sharded across all
