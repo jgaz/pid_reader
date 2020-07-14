@@ -7,7 +7,7 @@ SUBSCRIPTION_ID = os.getenv(
 )
 RESOURCE_GROUP = os.getenv("RESOURCE_GROUP", default="jgazStudentRG")
 WORKSPACE_NAME = os.getenv("WORKSPACE_NAME", default="mlvision")
-WORKSPACE_REGION = os.getenv("WORKSPACE_REGION", default="northeurope")
+WORKSPACE_REGION = os.getenv("WORKSPACE_REGION", default="westeurope")
 GPU_CLUSTER_NAME = "gpu-cluster"
 
 
