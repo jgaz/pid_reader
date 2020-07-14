@@ -67,6 +67,7 @@ if __name__ == "__main__":
             "pyyaml",
             "git+https://github.com/qubvel/efficientnet@e9fdd43857785fe5ccf3863915dcaf618b86849f#egg=efficientnet",
         ],
+        conda_packages=["cudatoolkit=10.1"],  # This allows Tensorflow 2.2
     )
 
     run = experiment.submit(estimator)
