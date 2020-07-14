@@ -12,6 +12,6 @@ GPU_CLUSTER_NAME = "gpu-cluster"
 
 
 SRC_PATH = os.path.dirname(os.path.realpath(__file__))
-MODEL_PATH = os.path.join(os.path.dirname(SRC_PATH), "data", "models")
+MODEL_PATH = "outputs/model"  # AzureML puts its stuff there
 
 LOGGING_LEVEL = logging.INFO

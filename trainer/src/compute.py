@@ -49,7 +49,10 @@ def get_or_create_gpu_cluster(ws, gpu_cluster_name):
 
         # Specify the configuration for the new cluster
         compute_config = AmlCompute.provisioning_configuration(
-            vm_size="STANDARD_NC6", min_nodes=0, max_nodes=4
+            vm_size="STANDARD_NC6",
+            min_nodes=0,
+            max_nodes=4,
+            idle_seconds_before_scaledown=600,
         )
         # Create the cluster with the specified name and configuration
         gpu_cluster = ComputeTarget.create(ws, gpu_cluster_name, compute_config)

@@ -58,8 +58,6 @@ if __name__ == "__main__":
     # Adjust 10 epochs to the total training samples we have
     EPOCHS = 10
     steps_per_epoch = training_samples // (BATCH_SIZE * EPOCHS)
-
-    current_model_path = os.path.join(MODEL_PATH, experiment_id)
     training_dataset: tf.data.Dataset = read_data(
         data_folder, is_training=True, batch_size=BATCH_SIZE
     )
@@ -71,6 +69,9 @@ if __name__ == "__main__":
     lr_decay = tfkeras.callbacks.LearningRateScheduler(
         lambda epoch: LEARNING_RATE * LEARNING_RATE_EXP_DECAY ** epoch, verbose=True
     )
+
+    os.makedirs(MODEL_PATH, exist_ok=True)
+    current_model_path = os.path.join(MODEL_PATH, experiment_id)
     tensorboard_callback = tfkeras.callbacks.TensorBoard(
         current_model_path, update_freq=100
     )
@@ -84,7 +85,7 @@ if __name__ == "__main__":
             lr_decay,
             tensorboard_callback,
             tfkeras.callbacks.ModelCheckpoint(
-                MODEL_PATH,
+                current_model_path,
                 monitor="val_loss",
                 save_best_only=True,
                 save_weights_only=False,
