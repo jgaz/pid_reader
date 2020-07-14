@@ -53,7 +53,7 @@ def merge_json_annotations(full, partial):
     full["annotations"] += partial["annotations"]
 
 
-def save_metadata_yaml(json_annotation, label_map_dict, output_path):
+def save_metadata_yaml(json_annotation, label_map_dict, output_path, num_shards):
     logger.info(
         f"Processed {idx + 1} files, obtained {len(json_annotation['images'])} images in json"
     )
@@ -67,10 +67,12 @@ def save_metadata_yaml(json_annotation, label_map_dict, output_path):
     json_file_path = output_path + "/json_pascal.json"
     with tf.io.gfile.GFile(json_file_path, "w") as f:
         json.dump(json_annotation, f)
-
+    total_images = len(json_annotation["images"])
+    images_per_shard = total_images // num_shards
     # Create YAML file with training metadata
     yaml_additional_data_contents = {
-        "num_images": len(json_annotation["images"]),
+        "num_images_validation": images_per_shard,
+        "num_images_training": total_images - images_per_shard,
         "matters": diagram_matters,
         "model_id": model_id,
         "num_classes": len(label_map_dict),
@@ -159,14 +161,16 @@ if __name__ == "__main__":
     for writer in writers:
         writer.close()
 
-    # Spare one shard for validation
-    validation_path = output_path + "/validation.tfrecord"
-    os.rename(
+    # Spare one chunk for validation
+    validation_path = os.path.join(output_path, "validation")
+    os.mkdir(validation_path)
+    validation_filename = os.path.join(validation_path, "validation.tfrecord")
+    os.replace(
         output_path + "/%05d-of-%05d.tfrecord" % (num_shards - 1, num_shards),
-        validation_path,
+        validation_filename,
     )
 
-    save_metadata_yaml(json_annotation, label_map_dict, output_path)
+    save_metadata_yaml(json_annotation, label_map_dict, output_path, num_shards)
 
     cs = AzureBlobCloudStorage()
     cs.store_directory(output_path, model_id)
