@@ -5,6 +5,8 @@ import argparse
 import os
 import tensorflow as tf
 import tensorflow.keras as tfkeras
+from azureml.core import Run
+
 from config import MODEL_PATH, TENSORBOARD_PATH
 from data import read_training_metadata, read_data
 
@@ -50,7 +52,7 @@ if __name__ == "__main__":
     # The best practice is to scale the batch size by the number of
     # replicas (cores). The learning rate should be increased as well.
     training_samples = training_metadata["num_images_training"]
-    BATCH_SIZE = 32  # Gobal batch size.
+    BATCH_SIZE = 64  # Gobal batch size.
     LEARNING_RATE = 0.01
     LEARNING_RATE_EXP_DECAY = 0.7
 
@@ -65,6 +67,9 @@ if __name__ == "__main__":
         validation_data_folder, is_training=False, batch_size=BATCH_SIZE
     )
 
+    # Logger
+    run = Run.get_context()
+
     lr_decay = tfkeras.callbacks.LearningRateScheduler(
         lambda epoch: LEARNING_RATE * LEARNING_RATE_EXP_DECAY ** epoch, verbose=True
     )
@@ -75,6 +80,11 @@ if __name__ == "__main__":
     tensorboard_callback = tfkeras.callbacks.TensorBoard(
         TENSORBOARD_PATH, update_freq="epoch"
     )
+    """
+    Check out embeddings metadata :)
+    embeddings_freq: frequency (in epochs) at which embedding layers will be visualized. If set to 0, embeddings won't be visualized.
+    embeddings_metadata: a dictionary which maps layer name to a file name in which metadata for this embedding layer is saved. See the details about metadata files format. In case if the same metadata file is used for all embedding layers, string can be passed.
+    """
 
     checkpoint_callback = tfkeras.callbacks.ModelCheckpoint(
         MODEL_PATH,
@@ -82,6 +92,7 @@ if __name__ == "__main__":
         save_best_only=True,
         save_weights_only=False,
         mode="auto",
+        verbose=1,
     )
 
     history = model.fit(
@@ -91,3 +102,5 @@ if __name__ == "__main__":
         epochs=EPOCHS,
         callbacks=[lr_decay, tensorboard_callback, checkpoint_callback],
     )
+
+    # We may not need the history since we are using the tensorboard callback

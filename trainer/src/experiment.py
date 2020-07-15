@@ -95,8 +95,8 @@ if __name__ == "__main__":
 
     get_model(run)
 
-    # Tensorboard for the training
-    # https://github.com/Azure/MachineLearningNotebooks/blob/master/how-to-use-azureml/training-with-deep-learning/export-run-history-to-tensorboard/export-run-history-to-tensorboard.ipynb
-
     # Configure native distributed training
     # https://docs.microsoft.com/en-gb/azure/machine-learning/how-to-train-tensorflow#distributed-training
+
+    # Monitoring experiments
+    # https://docs.microsoft.com/en-us/azure/machine-learning/how-to-track-experiments
