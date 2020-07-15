@@ -37,15 +37,21 @@ if __name__ == "__main__":
     data_folder = os.path.join(data_folder, extra_path)
     training_metadata = read_training_metadata(data_folder)
 
-    model_factory = ModelFactory()
-    model = model_factory.get_model(
-        training_metadata["width"], training_metadata["num_classes"]
-    )
-    model.compile(
-        optimizer="adam",  # learning rate will be set by LearningRateScheduler
-        loss="sparse_categorical_crossentropy",
-        metrics=["sparse_categorical_accuracy"],
-    )
+    # Strategy to train in multiple GPUs
+    strategy = tf.distribute.MirroredStrategy()
+    print("Number of devices: {}".format(strategy.num_replicas_in_sync))
+
+    # Open a strategy scope.
+    with strategy.scope():
+        model_factory = ModelFactory()
+        model = model_factory.get_model(
+            training_metadata["width"], training_metadata["num_classes"]
+        )
+        model.compile(
+            optimizer="adam",  # learning rate will be set by LearningRateScheduler
+            loss="sparse_categorical_crossentropy",
+            metrics=["sparse_categorical_accuracy"],
+        )
 
     # The global batch size will be automatically sharded across all
     # replicas by the tf.data.Dataset API.
