@@ -18,6 +18,7 @@ from metadata import (
 from symbol import GenericSymbol, SymbolGenerator, SymbolConfiguration, SymbolPositioner
 import logging
 import json
+import multiprocessing
 
 logging.basicConfig(level=LOGGING_LEVEL)
 logger = logging.getLogger(__name__)
@@ -38,13 +39,9 @@ def get_valid_symbols(
     return symbols
 
 
-def generate_diagram(
-    dss: DiagramSymbolsStorage,
-    diagram_size: Tuple[int, int],
-    symbols_per_diagram: int,
-    symbols,
-):
-    possible_orientation = [90]
+def generate_diagram(params):
+    dss, diagram_size, symbols_per_diagram, symbols = params
+    possible_orientation = [90, 0]
 
     image_diagram = Image.new("LA", diagram_size, 255)
 
@@ -57,7 +54,7 @@ def generate_diagram(
     for i in range(symbols_per_diagram):
         symbol = symbols[i % len(symbols)]
         coords = positions[i]
-        orientation = possible_orientation[0] if i % 4 == 0 else 0
+        orientation = random.choice(possible_orientation)
         symbol_generic = GenericSymbol(
             symbol.name, coords[0], coords[1], orientation=orientation
         )
@@ -137,15 +134,28 @@ if __name__ == "__main__":
 
     valid_symbols = get_valid_symbols(symbol_storage, diagram_matters)
 
+    # Generate the diagrams in multiprocess
+    params = [
+        (dss, diagram_size, symbols_per_diagram, valid_symbols)
+        for i in range(number_diagrams)
+    ]
+    print(len(params))
+    pool = multiprocessing.Pool(4)
+    pool.map(generate_diagram, params)
+    pool.close()
+    pool.join()
+
+    """
     for i in range(number_diagrams):
-        logger.info(f"Generating {i} out of {number_diagrams}")
+        if i % 100 == 0:
+            logger.info(f"Generating {i} out of {number_diagrams}")
         generate_diagram(
             dss,
             diagram_size=diagram_size,
             symbols_per_diagram=symbols_per_diagram,
             symbols=valid_symbols,
         )
-
+    """
     logger.info("Saving symbols dictionary")
     valid_symbols_dict = {}
     for i, symbol in enumerate(valid_symbols):
