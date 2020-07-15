@@ -52,7 +52,7 @@ if __name__ == "__main__":
     # The best practice is to scale the batch size by the number of
     # replicas (cores). The learning rate should be increased as well.
     training_samples = training_metadata["num_images_training"]
-    BATCH_SIZE = 64  # Gobal batch size.
+    BATCH_SIZE = 32  # Gobal batch size.
     LEARNING_RATE = 0.01
     LEARNING_RATE_EXP_DECAY = 0.7
 
