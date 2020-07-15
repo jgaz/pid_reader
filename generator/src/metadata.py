@@ -124,20 +124,11 @@ class DiagramSymbolsStorage:
 
 class DiagramStorage:
     def store_image(self, dss: DiagramSymbolsStorage, image_diagram, diagram_symbols):
-        image_diagram = image_diagram.convert("1")
-        img_out_filename = os.path.join(DIAGRAM_PATH, "Diagram.png")
-        image_diagram.save(img_out_filename)
-        hash = self.get_hash(img_out_filename)
-        os.rename(img_out_filename, os.path.join(DIAGRAM_PATH, f"Diagram_{hash}.png"))
+        image: PIL.Image = image_diagram.convert("1")
+        hash = hashlib.md5(image.tobytes()).hexdigest()
+        image.save(os.path.join(DIAGRAM_PATH, f"Diagram_{hash}.png"))
+        # Store symbols too
         dss.save(hash, diagram_symbols)
-
-    def get_hash(self, f_path, mode="md5"):
-        h = hashlib.new(mode)
-        with open(f_path, "rb") as file:
-            data = file.read()
-        h.update(data)
-        digest = h.hexdigest()
-        return digest
 
 
 class TensorflowStorage:
