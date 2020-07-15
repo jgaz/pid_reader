@@ -27,13 +27,14 @@ def run_details(run: Run):
     print(run.get_file_names())
 
 
-def get_model(run: Run):
-    os.makedirs("./model", exist_ok=True)
+def get_model(run: Run, experiment_id: int):
+    model_path = f"./model/{experiment_id}"
+    os.makedirs(model_path, exist_ok=True)
 
     for f in run.get_file_names():
         if f.startswith("outputs/model"):
-            output_file_path = os.path.join("./model", f.split("/")[-1])
-            print("Downloading from {} to {} ...".format(f, output_file_path))
+            output_file_path = os.path.join(model_path, f.split("/")[-1])
+            logger.info("Downloading from {} to {} ...".format(f, output_file_path))
             run.download_file(name=f, output_file_path=output_file_path)
 
 
@@ -93,7 +94,7 @@ if __name__ == "__main__":
 
     run_details(run)
 
-    get_model(run)
+    get_model(run, experiment_id)
 
     # Configure native distributed training
     # https://docs.microsoft.com/en-gb/azure/machine-learning/how-to-train-tensorflow#distributed-training
