@@ -8,6 +8,10 @@ class TrainingMetadata:
 
 
 class ModelFactory:
+    def get_model_detector(self):
+        # https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2.md
+        pass
+
     def get_model(self, image_size: int, classes: int) -> EfficientNet:
         shape_one_channel = (image_size, image_size, 1)
 
