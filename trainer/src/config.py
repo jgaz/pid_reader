@@ -12,6 +12,11 @@ GPU_CLUSTER_NAME = "gpu-cluster"
 
 
 SRC_PATH = os.path.dirname(os.path.realpath(__file__))
+MODELS_DIRECTORY = "model"
+TRAINED_MODELS_PATH = os.path.join(SRC_PATH, MODELS_DIRECTORY)
+GENERATOR_PATH = os.path.join(SRC_PATH, "../../generator/")
+GENERATOR_TF_PATH = os.path.join(GENERATOR_PATH, "data/tf/")
+
 MODEL_PATH = "outputs/model"  # AzureML puts its stuff there
 TENSORBOARD_PATH = "outputs/tensorboard"
 

@@ -13,6 +13,7 @@ from config import (
     WORKSPACE_REGION,
     LOGGING_LEVEL,
     GPU_CLUSTER_NAME,
+    MODELS_DIRECTORY,
 )
 from data import get_or_create_dataset
 from ml_storage import AzureBlobCloudStorage
@@ -28,7 +29,7 @@ def run_details(run: Run):
 
 
 def get_model(run: Run, experiment_id: int):
-    model_path = f"./model/{experiment_id}"
+    model_path = f"./{MODELS_DIRECTORY}/{experiment_id}"
     os.makedirs(model_path, exist_ok=True)
 
     for f in run.get_file_names():

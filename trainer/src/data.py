@@ -39,7 +39,8 @@ def read_training_metadata(training_path: str):
 def read_data(
     data_folder: str, is_training: bool = True, batch_size: int = 8
 ) -> tf.data.Dataset:
-    files_dataset = tf.data.Dataset.list_files(f"{data_folder}*.tfrecord")
+    path = os.path.join(data_folder, "*.tfrecord")
+    files_dataset = tf.data.Dataset.list_files(path)
     ds: tf.data.Dataset = tf.data.TFRecordDataset(
         files_dataset,
         compression_type=None,
@@ -119,7 +120,8 @@ def read_data(
         _select_data_from_record, num_parallel_calls=tf.data.experimental.AUTOTUNE
     )
 
-    ds = ds.batch(batch_size, drop_remainder=is_training)
+    if batch_size > 0:
+        ds = ds.batch(batch_size, drop_remainder=is_training)
     ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
     return ds
 
