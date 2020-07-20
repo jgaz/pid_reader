@@ -13,5 +13,7 @@ PNG_SYMBOL_PATH = os.path.join(DATA_PATH, "symbol_libraries", "png")
 SYMBOL_DEBUG = False
 SYMBOL_SOURCE_RESOLUTIONS = ["100", "225", "600"]
 
+CPU_COUNT = len(os.sched_getaffinity(0)) // 2  # Use half of the CPUs
+
 # CONFIGURABLE PARAMETERS
 LOGGING_LEVEL = logging.INFO

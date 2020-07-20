@@ -5,9 +5,9 @@ import argparse
 import os
 import random
 from random import shuffle
-from typing import List, Tuple
+from typing import List
 from PIL import Image
-from config import SYMBOL_DEBUG, LOGGING_LEVEL, DIAGRAM_PATH
+from config import SYMBOL_DEBUG, LOGGING_LEVEL, DIAGRAM_PATH, CPU_COUNT
 from metadata import (
     SymbolStorage,
     BlockedSymbolsStorage,
@@ -139,8 +139,7 @@ if __name__ == "__main__":
         (dss, diagram_size, symbols_per_diagram, valid_symbols)
         for i in range(number_diagrams)
     ]
-    print(len(params))
-    pool = multiprocessing.Pool(4)
+    pool = multiprocessing.Pool(CPU_COUNT)
     pool.map(generate_diagram, params)
     pool.close()
     pool.join()

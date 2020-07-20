@@ -8,7 +8,7 @@ from pathlib import Path
 import json
 import yaml
 from typing import Dict, Tuple
-from config import DIAGRAM_PATH, LOGGING_LEVEL, TENSORFLOW_PATH
+from config import DIAGRAM_PATH, LOGGING_LEVEL, TENSORFLOW_PATH, CPU_COUNT
 import logging
 from metadata import (
     DiagramSymbolsStorage,
@@ -106,6 +106,7 @@ if __name__ == "__main__":
             "S-Safety",
         ],
         default=None,
+        required=True,
     )
     args = parser.parse_args()
     if args.diagram_matter:
@@ -142,8 +143,8 @@ if __name__ == "__main__":
         pass
 
     # Save TF record in chunks
-    num_shards = 10
-    pool = multiprocessing.Pool(4)
+    num_shards = 20
+    pool = multiprocessing.Pool(CPU_COUNT)
     total_num_annotations_skipped = 0
     files_out = [
         output_path + "/%05d-of-%05d.tfrecord" % (i, num_shards)
@@ -152,7 +153,7 @@ if __name__ == "__main__":
     writers = [tf.python_io.TFRecordWriter(f) for f in files_out]
     for idx, tf_process in enumerate(pool.imap(process_diagram, params)):
         tf_example, pool_json_annotation = tf_process
-        if idx % 100 == 0:
+        if idx % 1000 == 0:
             logging.info("On image %d of %d", idx, len(params))
         merge_json_annotations(json_annotation, pool_json_annotation)
         writers[idx % num_shards].write(tf_example.SerializeToString())
