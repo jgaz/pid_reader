@@ -60,10 +60,10 @@ if __name__ == "__main__":
     training_samples = training_metadata["num_images_training"]
     BATCH_SIZE = 32  # Gobal batch size.
     LEARNING_RATE = 0.01
-    LEARNING_RATE_EXP_DECAY = 0.7
+    LEARNING_RATE_EXP_DECAY = 0.8  # Set to 0.7 for <500K training set
 
     # Adjust 10 epochs to the total training samples we have
-    EPOCHS = 10
+    EPOCHS = 20
     steps_per_epoch = training_samples // (BATCH_SIZE * EPOCHS)
     training_dataset: tf.data.Dataset = read_data(
         data_folder, is_training=True, batch_size=BATCH_SIZE
