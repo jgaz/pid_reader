@@ -24,8 +24,6 @@ logger.setLevel(LOGGING_LEVEL)
 
 def run_details(run: Run):
     print(run.get_details())
-    print(run.get_metrics())
-    print(run.get_file_names())
 
 
 def get_model(run: Run, experiment_id: int):
@@ -78,7 +76,7 @@ if __name__ == "__main__":
         source_directory=script_folder,
         compute_target=GPU_CLUSTER_NAME,
         script_params=script_params,
-        entry_script="train_tensorflow.py",
+        entry_script="train_backbone.py",
         use_gpu=True,
         pip_packages=[
             "azureml-dataprep[fuse]",
@@ -96,9 +94,6 @@ if __name__ == "__main__":
     run_details(run)
 
     get_model(run, experiment_id)
-
-    # Configure native distributed training
-    # https://docs.microsoft.com/en-gb/azure/machine-learning/how-to-train-tensorflow#distributed-training
 
     # Monitoring experiments
     # https://docs.microsoft.com/en-us/azure/machine-learning/how-to-track-experiments
