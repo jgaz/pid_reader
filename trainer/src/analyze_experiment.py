@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import yaml
 
-from config import GENERATOR_TF_PATH, TRAINED_MODELS_PATH
+from config import GENERATOR_TF_PATH, TRAINED_MODELS_PATH, GENERATOR_METADATA_FILE
 from data import read_data
 
 
@@ -103,7 +103,7 @@ def load_data(
 
 def load_training_metadata(experiment_id):
     training_metadata_file = os.path.join(
-        GENERATOR_TF_PATH, experiment_id, "training_metadata.yaml"
+        GENERATOR_TF_PATH, experiment_id, GENERATOR_METADATA_FILE
     )
     return yaml.full_load(open(training_metadata_file, "r"))
 

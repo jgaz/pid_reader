@@ -16,6 +16,7 @@ MODELS_DIRECTORY = "model"
 TRAINED_MODELS_PATH = os.path.join(SRC_PATH, MODELS_DIRECTORY)
 GENERATOR_PATH = os.path.join(SRC_PATH, "../../generator/")
 GENERATOR_TF_PATH = os.path.join(GENERATOR_PATH, "data/tf/")
+GENERATOR_METADATA_FILE = "training_metadata.yaml"
 
 MODEL_PATH = "outputs/model"  # AzureML puts its stuff there
 TENSORBOARD_PATH = "outputs/tensorboard"
