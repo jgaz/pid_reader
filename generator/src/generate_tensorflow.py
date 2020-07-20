@@ -8,7 +8,13 @@ from pathlib import Path
 import json
 import yaml
 from typing import Dict, Tuple
-from config import DIAGRAM_PATH, LOGGING_LEVEL, TENSORFLOW_PATH, CPU_COUNT
+from config import (
+    DIAGRAM_PATH,
+    LOGGING_LEVEL,
+    TENSORFLOW_PATH,
+    CPU_COUNT,
+    GENERATOR_METADATA_FILE,
+)
 import logging
 from metadata import (
     DiagramSymbolsStorage,
@@ -80,7 +86,7 @@ def save_metadata_yaml(json_annotation, label_map_dict, output_path, num_shards)
         "height": size[0],
         "width": size[1],
     }
-    yaml_file_path = output_path + "/training_metadata.yaml"
+    yaml_file_path = os.path.join(output_path, GENERATOR_METADATA_FILE)
     with open(yaml_file_path, "w") as file:
         yaml.dump(yaml_additional_data_contents, file)
 
