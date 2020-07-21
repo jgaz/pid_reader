@@ -3,9 +3,9 @@ import logging
 import os
 
 from azureml.train.dnn import TensorFlow
-from azureml.core import Experiment, Run
+from azureml.core import Experiment, Run, Environment
 
-from compute import get_or_create_workspace
+from compute import get_or_create_workspace, get_or_create_detector_environment
 from config import (
     SUBSCRIPTION_ID,
     RESOURCE_GROUP,
@@ -50,18 +50,21 @@ if __name__ == "__main__":
         SUBSCRIPTION_ID, RESOURCE_GROUP, WORKSPACE_NAME, WORKSPACE_REGION
     )
 
+    env = get_or_create_detector_environment(ws)
+
     # Get the list of files from the blob
-    ab = AzureBlobCloudStorage()
-    files = ab.list_files(experiment_id)
+    # ab = AzureBlobCloudStorage()
+    # files = ab.list_files(experiment_id)
 
     # Make sure training dataset exists
-    dataset_name = f"a_{experiment_id}"
-    dataset = get_or_create_dataset(ws, files, dataset_name)
+    # dataset_name = f"a_{experiment_id}"
+    # dataset = get_or_create_dataset(ws, files, dataset_name)
 
     # Create the experiment
     experiment_name = f"detector_{experiment_id}"
     experiment = Experiment(ws, name=experiment_name)
 
+    """
     script_params = {
         "--data_folder": dataset.as_named_input(dataset_name).as_download(),
         "--extra_path": os.path.join(
@@ -69,7 +72,12 @@ if __name__ == "__main__":
         ),
         "--experiment_id": f"{experiment_id}",
     }
-
+    """
+    script_params = {
+        "--data_folder": "df",
+        "--extra_path": "ep",
+        "--experiment_id": f"{experiment_id}",
+    }
     script_folder = "./"
     # Need to install protobuf-compiler deb package
     estimator = TensorFlow(
@@ -77,9 +85,8 @@ if __name__ == "__main__":
         compute_target=GPU_CLUSTER_NAME,
         script_params=script_params,
         entry_script="train_detector.py",
-        use_gpu=True,
-        pip_packages=["azureml-dataprep[fuse]", "tensorflow-gpu==2.2.0", "pyyaml"],
-        conda_packages=["cudatoolkit=10.1"],  # This allows Tensorflow 2.2
+        framework_version="2.1",
+        environment_definition=env,
     )
 
     run: Run = experiment.submit(estimator)

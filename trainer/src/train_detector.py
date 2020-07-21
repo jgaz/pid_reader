@@ -9,22 +9,21 @@ from shutil import copyfile
 
 def install_tf2_object_detection():
     try:
-        import pexpect
+        import object_detection
     except ImportError:
         # Clone the tensorflow models repository if it doesn't already exist
-        command = "git  clone --depth 1 https://github.com/tensorflow/models".split(" ")
-        subprocess.run(command, check=True)
+        command = "git clone --depth 1 https://github.com/tensorflow/models".split(" ")
+        subprocess.run(command, check=False)
 
         command = "protoc object_detection/protos/*.proto --python_out=.".split(" ")
-        subprocess.run(command, check=True, cwd="./models/research/")
+        subprocess.run(command, check=False, cwd="models/research/")
 
         copyfile(
-            "./models/research/object_detection/packages/tf2/setup.py", "./setup.py"
+            "./models/research/object_detection/packages/tf2/setup.py",
+            "./models/research/setup.py",
         )
         command = "python -m pip install .".split(" ")
-        subprocess.run(command, check=True)
-
-        import pexpect
+        subprocess.run(command, check=True, cwd="models/research/")
 
 
 if __name__ == "__main__":
