@@ -39,7 +39,6 @@ if __name__ == "__main__":
 
     # Strategy to train in multiple GPUs
     strategy = tf.distribute.MirroredStrategy()
-    print("Number of devices: {}".format(strategy.num_replicas_in_sync))
 
     # Open a strategy scope.
     with strategy.scope():
