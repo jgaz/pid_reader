@@ -40,15 +40,19 @@ def update_config(config_path: str, variables_to_setup: Dict[str, str]):
         config = config_file.read()
 
     for key, value in variables_to_setup.items():
-        config.replace(f"##{key}##", value)
+        config = config.replace(f"##{key}##", str(value))
 
     with open(config_path, "w") as config_file:
         config_file.write(config)
 
 
 def get_variables(training_path: str):
+    """
+    TODO: cosine_decay_learning_rate figure out how to tweak this
+    """
     training_metadata = read_training_metadata(training_path)
     variables = {
+        "NUM_CLASSES": int(training_metadata["num_classes"]),
         "DIAGRAM_SIZE": int(training_metadata["width"]),
         "BATCH_SIZE": 32,
         "TOTAL_STEPS": int(training_metadata["num_images_training"]) // 32,
@@ -97,17 +101,16 @@ if __name__ == "__main__":
     path_config = "./deploy/configuration_detector.config"
     model_dir = f"./outputs/model/{experiment_id}"
     config_variables = get_variables(training_folder)
-    print(config_variables)
-    # update_config(path_config)
+
+    update_config(path_config, config_variables)
 
     # Launch training script
-    command = f"""python ./content/models/research/object_detection/model_main_tf2.py
-    --pipeline_config_path={path_config} --model_dir={model_dir}
+    command = f"""python ./content/models/research/object_detection/model_main_tf2.py \
+    --pipeline_config_path={path_config} --model_dir={model_dir} \
     --alsologtostderr --sample_1_of_n_eval_examples=1 """
     print(command)
 """
 python train_detector.py --experiment_id 21dc09821e6e4b722b93878a078977483ba798dd \
  --data_folder ./ \
  --extra_path https/storageaccountdatav9498.blob.core.windows.net/pub/
-
 """
