@@ -26,6 +26,10 @@ def install_tf2_object_detection():
         subprocess.run(command, check=True, cwd="models/research/")
 
 
+def update_config(config_path: str):
+    pass
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Training the detector")
     parser.add_argument(
@@ -59,5 +63,14 @@ if __name__ == "__main__":
     backbone_folder = os.path.join(root_folder, backbone_experiment_id)
 
     # Update config file information
+    path_config = "../deploy/configuration_detector.config"
+    update_config(path_config)
 
     # Launch training script
+    command = """python /content/models/research/object_detection/model_main_tf2.py \
+    --pipeline_config_path={pipeline_file} \
+    --model_dir={model_dir} \
+    --alsologtostderr \
+    --num_train_steps={num_steps} \
+    --sample_1_of_n_eval_examples=1 \
+    --num_eval_steps={num_eval_steps}"""
