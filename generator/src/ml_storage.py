@@ -40,17 +40,31 @@ class AzureBlobCloudStorage(CloudStorage):
 
         # Upload the created file
         with open(file_path, "rb") as data:
-            blob_client.upload_blob(data)
+            blob_client.upload_blob(data, overwrite=True)
 
-    def store_directory(self, path, blob_name):
+    def store_directory(self, path: str, blob_path: str):
+        """
+        Stores a directory
+        """
         for r, d, f in os.walk(path):
             if f:
                 for file in f:
+                    local_relative_path = r.replace(path, "")
+                    local_relative_path = (
+                        local_relative_path[1:]
+                        if local_relative_path.startswith("/")
+                        else local_relative_path
+                    )
                     # Terrible hack for validation folder
-                    if re.findall("validation", r):
-                        file_path_on_azure = os.path.join(blob_name, "validation", file)
+                    if re.findall(
+                        "validation", r
+                    ):  # Move into folder if named validation
+                        file_path_on_azure = os.path.join(blob_path, "validation", file)
                     else:
-                        file_path_on_azure = os.path.join(blob_name, file)
+                        file_path_on_azure = os.path.join(
+                            blob_path, local_relative_path, file
+                        )
+
                     file_path_on_local = os.path.join(r, file)
                     self.store_file(file_path_on_local, file_path_on_azure)
 
