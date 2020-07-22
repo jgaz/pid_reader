@@ -9,10 +9,10 @@ RESOURCE_GROUP = os.getenv("RESOURCE_GROUP", default="jgazStudentRG")
 WORKSPACE_NAME = os.getenv("WORKSPACE_NAME", default="mlvision")
 WORKSPACE_REGION = os.getenv("WORKSPACE_REGION", default="westeurope")
 GPU_CLUSTER_NAME = "gpu-cluster"
-
+ENVIRONMENT_NAME_DETECTOR = "detector"
 
 SRC_PATH = os.path.dirname(os.path.realpath(__file__))
-MODELS_DIRECTORY = "model"
+MODELS_DIRECTORY = "../data/model"
 TRAINED_MODELS_PATH = os.path.join(SRC_PATH, MODELS_DIRECTORY)
 GENERATOR_PATH = os.path.join(SRC_PATH, "../../generator/")
 GENERATOR_TF_PATH = os.path.join(GENERATOR_PATH, "data/tf/")

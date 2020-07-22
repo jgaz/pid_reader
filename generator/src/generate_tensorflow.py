@@ -8,12 +8,19 @@ from pathlib import Path
 import json
 import yaml
 from typing import Dict, Tuple
+
+from object_detection.protos.string_int_label_map_pb2 import (
+    StringIntLabelMap,
+    StringIntLabelMapItem,
+)
+
 from config import (
     DIAGRAM_PATH,
     LOGGING_LEVEL,
     TENSORFLOW_PATH,
     CPU_COUNT,
     GENERATOR_METADATA_FILE,
+    GENERATOR_LABEL_FILE,
 )
 import logging
 from metadata import (
@@ -75,6 +82,7 @@ def save_metadata_yaml(json_annotation, label_map_dict, output_path, num_shards)
         json.dump(json_annotation, f)
     total_images = len(json_annotation["images"])
     images_per_shard = total_images // num_shards
+
     # Create YAML file with training metadata
     yaml_additional_data_contents = {
         "num_images_validation": images_per_shard,
@@ -89,6 +97,22 @@ def save_metadata_yaml(json_annotation, label_map_dict, output_path, num_shards)
     yaml_file_path = os.path.join(output_path, GENERATOR_METADATA_FILE)
     with open(yaml_file_path, "w") as file:
         yaml.dump(yaml_additional_data_contents, file)
+
+
+def save_metadata_label_map(output_path: str, label_map_dict: Dict[str, int]):
+    """
+    Generate ProtocolBuffer file with the classes map for the detector
+    :param output_path:
+    :param label_map_dict:
+    :return:
+    """
+    label_map = StringIntLabelMap()
+    with open(os.path.join(output_path, GENERATOR_LABEL_FILE), "wb") as f:
+        for name, id in label_map_dict.items():
+            label_item = label_map.item.add()
+            label_item.name = name
+            label_item.id = id
+        f.write(str(label_map).encode())
 
 
 if __name__ == "__main__":
@@ -181,6 +205,7 @@ if __name__ == "__main__":
     )
 
     save_metadata_yaml(json_annotation, label_map_dict, output_path, num_shards)
+    save_metadata_label_map(output_path, label_map_dict)
 
     cs = AzureBlobCloudStorage()
     cs.store_directory(output_path, model_id)

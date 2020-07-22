@@ -1,0 +1,3 @@
+FROM mcr.microsoft.com/azureml/base-gpu:openmpi3.1.2-cuda10.1-cudnn7-ubuntu18.04
+RUN apt update && apt install -y protobuf-compiler && pip install --upgrade pip
+RUN pip install --upgrade azureml-dataprep[fuse] tensorflow-gpu==2.2.0 pyyaml  && pip freeze

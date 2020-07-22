@@ -1,15 +1,20 @@
-from azureml.core import Workspace
+from azureml.core import Workspace, Environment
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.compute_target import ComputeTargetException
 import logging
 
 from azureml.exceptions import ProjectSystemException
 
+from config import ENVIRONMENT_NAME_DETECTOR
+
 logger = logging.getLogger(__name__)
 
 
 def get_or_create_workspace(
-    subscription_id, resource_group, workspace_name, workspace_region
+    subscription_id: str,
+    resource_group: str,
+    workspace_name: str,
+    workspace_region: str,
 ) -> Workspace:
     try:
         ws = Workspace(
@@ -40,7 +45,9 @@ def get_or_create_workspace(
     return ws
 
 
-def get_or_create_gpu_cluster(ws, gpu_cluster_name):
+def get_or_create_gpu_cluster(
+    ws: Workspace, gpu_cluster_name: str, gpu_machine: str
+) -> ComputeTarget:
     try:
         gpu_cluster = ComputeTarget(workspace=ws, name=gpu_cluster_name)
         logger.info("Found existing gpu cluster")
@@ -49,7 +56,7 @@ def get_or_create_gpu_cluster(ws, gpu_cluster_name):
 
         # Specify the configuration for the new cluster
         compute_config = AmlCompute.provisioning_configuration(
-            vm_size="STANDARD_NC12",
+            vm_size=gpu_machine,
             min_nodes=0,
             max_nodes=1,
             idle_seconds_before_scaledown=300,
@@ -60,3 +67,17 @@ def get_or_create_gpu_cluster(ws, gpu_cluster_name):
         # Wait for the cluster to complete, show the output log
         gpu_cluster.wait_for_completion(show_output=True)
     return gpu_cluster
+
+
+def get_or_create_detector_environment(ws: Workspace) -> Environment:
+
+    try:
+        env = Environment.get(ENVIRONMENT_NAME_DETECTOR)
+    except Exception:
+        env = Environment(workspace=ws, name=ENVIRONMENT_NAME_DETECTOR)
+        env.docker.enabled = True
+        docker_file_contents = open("./Dockerfile.detector", "r").read()
+        env.docker.base_image = None
+        env.docker.base_dockerfile = docker_file_contents
+        env.register(workspace=ws)
+    return env

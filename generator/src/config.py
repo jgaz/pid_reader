@@ -10,6 +10,7 @@ METADATA_PATH = os.path.join(DATA_PATH, "metadata")
 PNG_SYMBOL_PATH = os.path.join(DATA_PATH, "symbol_libraries", "png")
 
 GENERATOR_METADATA_FILE = "training_metadata.yaml"
+GENERATOR_LABEL_FILE = "label_map.pbtxt"
 
 SYMBOL_DEBUG = False
 SYMBOL_SOURCE_RESOLUTIONS = ["100", "225", "600"]
