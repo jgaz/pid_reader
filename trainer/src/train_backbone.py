@@ -87,8 +87,11 @@ if __name__ == "__main__":
     )
     """
     Check out embeddings metadata :)
-    embeddings_freq: frequency (in epochs) at which embedding layers will be visualized. If set to 0, embeddings won't be visualized.
-    embeddings_metadata: a dictionary which maps layer name to a file name in which metadata for this embedding layer is saved. See the details about metadata files format. In case if the same metadata file is used for all embedding layers, string can be passed.
+    embeddings_freq: frequency (in epochs) at which embedding layers will be visualized. If set to 0,
+                     embeddings won't be visualized.
+    embeddings_metadata: a dictionary which maps layer name to a file name in which metadata for this
+                     embedding layer is saved. See the details about metadata files format. In case if
+                     the same metadata file is used for all embedding layers, string can be passed.
     """
 
     checkpoint_callback = tfkeras.callbacks.ModelCheckpoint(

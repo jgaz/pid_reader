@@ -3,7 +3,7 @@ import logging
 import os
 
 from azureml.train.dnn import TensorFlow
-from azureml.core import Experiment, Run, Environment
+from azureml.core import Experiment, Run, Environment, Workspace
 
 from compute import get_or_create_workspace, get_or_create_detector_environment
 from config import (
@@ -40,25 +40,33 @@ def get_model(run: Run, experiment_id: int):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a training experiment in AzureML")
     parser.add_argument("experiment_id", type=str, help="""The experiment id""")
-    args = parser.parse_args()
-    if args.experiment_id:
-        experiment_id = args.experiment_id
-    else:
-        exit(-1)
+    parser.add_argument(
+        "--backbone_experiment_id",
+        required=True,
+        type=str,
+        help="""The backbone model experiment id""",
+    )
 
-    ws = get_or_create_workspace(
+    args = parser.parse_args()
+    experiment_id = args.experiment_id
+    backbone_experiment_id = args.backbone_experiment_id
+
+    ws: Workspace = get_or_create_workspace(
         SUBSCRIPTION_ID, RESOURCE_GROUP, WORKSPACE_NAME, WORKSPACE_REGION
     )
 
-    env = get_or_create_detector_environment(ws)
+    env: Environment = get_or_create_detector_environment(ws)
 
     # Get the list of files from the blob
-    # ab = AzureBlobCloudStorage()
-    # files = ab.list_files(experiment_id)
+    ab = AzureBlobCloudStorage()
+    files = ab.list_files(experiment_id)
+
+    # We need to add the backbone to the list of files
+    files += ab.list_files(backbone_experiment_id)
 
     # Make sure training dataset exists
-    # dataset_name = f"a_{experiment_id}"
-    # dataset = get_or_create_dataset(ws, files, dataset_name)
+    dataset_name = f"detector_{experiment_id}"
+    dataset = get_or_create_dataset(ws, files, dataset_name)
 
     # Create the experiment
     experiment_name = f"detector_{experiment_id}"
@@ -74,12 +82,13 @@ if __name__ == "__main__":
     }
     """
     script_params = {
-        "--data_folder": "df",
-        "--extra_path": "ep",
-        "--experiment_id": f"{experiment_id}",
+        "--data_folder": "../data",
+        "--extra_path": f"https/{ab.storage_account}.blob.core.windows.net/pub",
+        "--experiment_id": experiment_id,
+        "--backbone_experiment_id": backbone_experiment_id,
     }
     script_folder = "./"
-    # Need to install protobuf-compiler deb package
+
     estimator = TensorFlow(
         source_directory=script_folder,
         compute_target=GPU_CLUSTER_NAME,

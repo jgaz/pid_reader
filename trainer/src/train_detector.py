@@ -29,6 +29,12 @@ def install_tf2_object_detection():
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Training the detector")
     parser.add_argument(
+        "--backbone_experiment_id",
+        required=True,
+        type=str,
+        help="""The backbone experiment id""",
+    )
+    parser.add_argument(
         "--experiment_id", required=True, type=str, help="""The experiment id"""
     )
     parser.add_argument(
@@ -39,16 +45,19 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+    backbone_experiment_id = args.backbone_experiment_id
     experiment_id = args.experiment_id
     data_folder = args.data_folder
     extra_path = args.extra_path
 
-    data_folder = os.path.join(data_folder, extra_path)
-
     # Check for TF2 object detection API or install
     install_tf2_object_detection()
 
-    # Download backbone model
-
     # Make sure training data is there
+    root_folder = os.path.join(data_folder, extra_path)
+    training_folder = os.path.join(root_folder, experiment_id)
+    backbone_folder = os.path.join(root_folder, backbone_experiment_id)
+
+    # Update config file information
+
     # Launch training script
