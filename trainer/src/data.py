@@ -32,7 +32,7 @@ def get_or_create_dataset(
 def read_training_metadata(training_path: str):
     yaml_file_path = os.path.join(training_path, "training_metadata.yaml")
     with open(yaml_file_path, "r") as file:
-        training_metadata = yaml.load(file)
+        training_metadata = yaml.full_load(file)
     return training_metadata
 
 

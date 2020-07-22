@@ -78,8 +78,9 @@ if __name__ == "__main__":
     # Make sure training dataset exists
     dataset_name = f"detector_{experiment_id}"
     dataset = get_or_create_dataset(ws, files, dataset_name)
-
+    dataset.download("./")
     """
+
     # Create the experiment
     experiment_name = f"detector_{experiment_id}"
     experiment = Experiment(ws, name=experiment_name)
