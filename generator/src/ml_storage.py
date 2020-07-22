@@ -9,6 +9,12 @@ class CloudStorage:
     def store_file(self, file_name, destination_path):
         pass
 
+    def store_directory(self, path, blob_name):
+        pass
+
+    def list_files(self, path: str) -> List[str]:
+        pass
+
 
 class AzureBlobCloudStorage(CloudStorage):
     CONTAINER_NAME = "pub"
@@ -55,3 +61,18 @@ class AzureBlobCloudStorage(CloudStorage):
         files = container_client.list_blobs(name_starts_with=path)
         blob_path = f"https://{self.storage_account}.blob.core.windows.net/{self.CONTAINER_NAME}/"
         return [blob_path + x["name"] for x in files]
+
+
+class ExperimentStorage:
+    def __init__(self, experiment_id: str, cloud_storage: CloudStorage):
+        self.experiment_id = experiment_id
+        self.could_storage = cloud_storage
+
+    def upload(self):
+        pass
+
+    def download(self):
+        pass
+
+    def get_url_files(self):
+        pass
