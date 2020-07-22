@@ -133,8 +133,8 @@ if __name__ == "__main__":
         random.choices(matters, k=2)
 
     valid_symbols = get_valid_symbols(symbol_storage, diagram_matters)
-
     # Generate the diagrams in multiprocess
+    DiagramStorage.clear()
     params = [
         (dss, diagram_size, symbols_per_diagram, valid_symbols)
         for i in range(number_diagrams)
@@ -144,17 +144,6 @@ if __name__ == "__main__":
     pool.close()
     pool.join()
 
-    """
-    for i in range(number_diagrams):
-        if i % 100 == 0:
-            logger.info(f"Generating {i} out of {number_diagrams}")
-        generate_diagram(
-            dss,
-            diagram_size=diagram_size,
-            symbols_per_diagram=symbols_per_diagram,
-            symbols=valid_symbols,
-        )
-    """
     logger.info("Saving symbols dictionary")
     valid_symbols_dict = {}
     for i, symbol in enumerate(valid_symbols):

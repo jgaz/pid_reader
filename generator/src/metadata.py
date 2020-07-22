@@ -2,6 +2,7 @@ import hashlib
 import io
 import os
 import pickle
+import shutil
 
 import PIL
 import pandas as pd
@@ -129,6 +130,11 @@ class DiagramStorage:
         image.save(os.path.join(DIAGRAM_PATH, f"Diagram_{hash}.png"))
         # Store symbols too
         dss.save(hash, diagram_symbols)
+
+    @staticmethod
+    def clear():
+        shutil.rmtree(DIAGRAM_PATH)
+        os.makedirs(DIAGRAM_PATH)
 
 
 class TensorflowStorage:
