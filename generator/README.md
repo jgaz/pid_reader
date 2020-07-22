@@ -13,6 +13,9 @@ top of the generated images.
 
 The data pipeline starts with an ordered collection of symbols placed
 
+### Training for classification
+
+### Training for detection
 
 ## Status
 

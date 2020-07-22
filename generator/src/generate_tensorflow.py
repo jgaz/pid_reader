@@ -9,7 +9,10 @@ import json
 import yaml
 from typing import Dict, Tuple
 
-from object_detection.protos.string_int_label_map_pb2 import StringIntLabelMap
+from object_detection.protos.string_int_label_map_pb2 import (
+    StringIntLabelMap,
+    StringIntLabelMapItem,
+)
 
 from config import (
     DIAGRAM_PATH,
@@ -103,13 +106,13 @@ def save_metadata_label_map(output_path: str, label_map_dict: Dict[str, int]):
     :param label_map_dict:
     :return:
     """
-
+    label_map = StringIntLabelMap()
     with open(os.path.join(output_path, GENERATOR_LABEL_FILE), "wb") as f:
         for name, id in label_map_dict.items():
-            label_map = StringIntLabelMap()
-            label_map.name = name
-            label_map.id = id
-            f.write(label_map.SerializeToString())
+            label_item = label_map.item.add()
+            label_item.name = name
+            label_item.id = id
+        f.write(str(label_map).encode())
 
 
 if __name__ == "__main__":
