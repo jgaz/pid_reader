@@ -37,6 +37,17 @@ def get_model(run: Run, experiment_id: int):
             run.download_file(name=f, output_file_path=output_file_path)
 
 
+def copy_backbone_model(experiment_id: str, backbone_experiment_id: str):
+    """
+    Copies the model into a backbone folder in the blob storage for the training data
+    """
+    cs = AzureBlobCloudStorage()
+    local_path = os.path.join(MODELS_DIRECTORY, backbone_experiment_id)
+    blob_path = os.path.join(experiment_id, "backbone")
+    cs.store_directory(local_path, blob_path=blob_path)
+    return cs.list_files(blob_path)
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a training experiment in AzureML")
     parser.add_argument("experiment_id", type=str, help="""The experiment id""")
@@ -61,26 +72,18 @@ if __name__ == "__main__":
     ab = AzureBlobCloudStorage()
     files = ab.list_files(experiment_id)
 
-    # We need to add the backbone to the list of files
-    files += ab.list_files(backbone_experiment_id)
+    # We need to add the backbone model to the list of files
+    files += copy_backbone_model(experiment_id, backbone_experiment_id)
 
     # Make sure training dataset exists
     dataset_name = f"detector_{experiment_id}"
     dataset = get_or_create_dataset(ws, files, dataset_name)
 
+    """
     # Create the experiment
     experiment_name = f"detector_{experiment_id}"
     experiment = Experiment(ws, name=experiment_name)
 
-    """
-    script_params = {
-        "--data_folder": dataset.as_named_input(dataset_name).as_download(),
-        "--extra_path": os.path.join(
-            f"https/{ab.storage_account}.blob.core.windows.net/pub", f"{experiment_id}/"
-        ),
-        "--experiment_id": f"{experiment_id}",
-    }
-    """
     script_params = {
         "--data_folder": "../data",
         "--extra_path": f"https/{ab.storage_account}.blob.core.windows.net/pub",
@@ -108,3 +111,4 @@ if __name__ == "__main__":
 
     # Monitoring experiments
     # https://docs.microsoft.com/en-us/azure/machine-learning/how-to-track-experiments
+    """
