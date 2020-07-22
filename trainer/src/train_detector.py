@@ -11,6 +11,7 @@ from typing import Dict
 
 from config import LOGGING_LEVEL
 from data import read_training_metadata
+import tensorflow as tf
 
 logger = logging.getLogger(__name__)
 logger.setLevel(LOGGING_LEVEL)
@@ -56,7 +57,7 @@ def get_variables(training_path: str):
         "DIAGRAM_SIZE": int(training_metadata["width"]),
         "BATCH_SIZE": 32,
         "TOTAL_STEPS": int(training_metadata["num_images_training"]) // 32,
-        "PATH_BACKBONE": os.path.join(training_path, "backbone/saved_model.pb"),
+        "PATH_BACKBONE": os.path.join(training_path, "backbone/checkpoint/"),
         "PATH_LABEL_MAP": os.path.join(training_path, "label_map.pbtxt"),
         "TRAINING_PATH": os.path.join(training_path, "?????-of-000??.tfrecord"),
         "VALIDATION_PATH": os.path.join(
@@ -64,6 +65,13 @@ def get_variables(training_path: str):
         ),
     }
     return variables
+
+
+def generate_backbone_checkpoint(backbone_path: str):
+    target_dir = os.path.join(backbone_path, "checkpoint/")
+    model = tf.keras.models.load_model(backbone_path)
+    os.mkdir(target_dir)
+    model.save_weights(save_format="tf", filepath=target_dir)
 
 
 if __name__ == "__main__":
@@ -104,8 +112,10 @@ if __name__ == "__main__":
 
     update_config(path_config, config_variables)
 
+    generate_backbone_checkpoint(backbone_folder)
+
     # Launch training script
-    command = f"""python ./content/models/research/object_detection/model_main_tf2.py \
+    command = f"""python ./models/research/object_detection/model_main_tf2.py \
     --pipeline_config_path={path_config} --model_dir={model_dir} \
     --alsologtostderr --sample_1_of_n_eval_examples=1 """
     print(command)
