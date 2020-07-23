@@ -69,9 +69,10 @@ def get_variables(training_path: str):
 
 def generate_backbone_checkpoint(backbone_path: str):
     target_dir = os.path.join(backbone_path, "checkpoint/")
-    model = tf.keras.models.load_model(backbone_path)
-    os.mkdir(target_dir)
-    model.save_weights(save_format="tf", filepath=target_dir)
+    if not os.path.exists(target_dir):
+        os.mkdir(target_dir)
+        model = tf.keras.models.load_model(backbone_path)
+        model.save_weights(save_format="tf", filepath=target_dir)
 
 
 if __name__ == "__main__":
@@ -115,10 +116,9 @@ if __name__ == "__main__":
     generate_backbone_checkpoint(backbone_folder)
 
     # Launch training script
-    command = f"""python ./models/research/object_detection/model_main_tf2.py \
-    --pipeline_config_path={path_config} --model_dir={model_dir} \
-    --alsologtostderr --sample_1_of_n_eval_examples=1 """
-    print(command)
+    command = f"""python ./models/research/object_detection/model_main_tf2.py --pipeline_config_path={path_config} --model_dir={model_dir} --alsologtostderr --sample_1_of_n_eval_examples=1"""
+    subprocess.run(command.split(" "), check=True)
+
 """
 python train_detector.py --experiment_id 21dc09821e6e4b722b93878a078977483ba798dd \
  --data_folder ./ \
