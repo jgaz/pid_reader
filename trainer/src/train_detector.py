@@ -1,5 +1,11 @@
 """
 This trains a detector based on the backbone of the given model
+
+Example:
+    python train_detector.py --experiment_id 21dc09821e6e4b722b93878a078977483ba798dd \
+        --data_folder ./ \
+        --extra_path https/storageaccountdatav9498.blob.core.windows.net/pub/
+
 """
 import argparse
 import logging
@@ -21,8 +27,8 @@ def install_tf2_object_detection():
     try:
         import object_detection
     except ImportError:
-        # Clone the tensorflow models repository if it doesn't already exist
-        command = "git clone --depth 1 https://github.com/tensorflow/models".split(" ")
+        # Clone the modified tensorflow models repository if it doesn't already exist
+        command = "git clone --depth 1 https://github.com/jgaz/models".split(" ")
         subprocess.run(command, check=False)
 
         command = "protoc object_detection/protos/*.proto --python_out=.".split(" ")
@@ -72,7 +78,9 @@ def generate_backbone_checkpoint(backbone_path: str):
     if not os.path.exists(target_dir):
         os.mkdir(target_dir)
         model = tf.keras.models.load_model(backbone_path)
-        model.save_weights(save_format="tf", filepath=target_dir)
+        # Save an object based checkpoint
+        ckpt = tf.train.Checkpoint(model=model)
+        ckpt.save(file_prefix=target_dir)
 
 
 if __name__ == "__main__":
@@ -118,9 +126,3 @@ if __name__ == "__main__":
     # Launch training script
     command = f"""python ./models/research/object_detection/model_main_tf2.py --pipeline_config_path={path_config} --model_dir={model_dir} --alsologtostderr --sample_1_of_n_eval_examples=1"""
     subprocess.run(command.split(" "), check=True)
-
-"""
-python train_detector.py --experiment_id 21dc09821e6e4b722b93878a078977483ba798dd \
- --data_folder ./ \
- --extra_path https/storageaccountdatav9498.blob.core.windows.net/pub/
-"""
