@@ -24,6 +24,12 @@ logger.setLevel(LOGGING_LEVEL)
 
 
 def install_tf2_object_detection():
+    """
+    This will install object detection API into the production cluster
+    if you are doing development, you will prefer to install it using
+    pip install -e . so it is in development mode
+    (you might need to change parts of the API)
+    """
     try:
         import object_detection
     except ImportError:
@@ -42,15 +48,17 @@ def install_tf2_object_detection():
         subprocess.run(command, check=True, cwd="models/research/")
 
 
-def update_config(config_path: str, variables_to_setup: Dict[str, str]):
+def update_config(config_path: str, variables_to_setup: Dict[str, str]) -> str:
     with open(config_path, "r") as config_file:
         config = config_file.read()
 
     for key, value in variables_to_setup.items():
         config = config.replace(f"##{key}##", str(value))
 
-    with open(config_path, "w") as config_file:
+    out_file_path = f"{config_path}.custom"
+    with open(f"{config_path}.custom", "w") as config_file:
         config_file.write(config)
+    return out_file_path
 
 
 def get_variables(training_path: str):
@@ -96,11 +104,18 @@ if __name__ == "__main__":
     parser.add_argument(
         "--extra_path", required=True, type=str, help="""Where the training data is""",
     )
+    parser.add_argument(
+        "--object_detection_path",
+        required=False,
+        type=str,
+        default="./models/research/object_detection/",
+    )
 
     args = parser.parse_args()
     experiment_id = args.experiment_id
     data_folder = args.data_folder
     extra_path = args.extra_path
+    object_detection_path = args.object_detection_path
 
     # Check for TF2 object detection API or install
     install_tf2_object_detection()
@@ -119,10 +134,13 @@ if __name__ == "__main__":
     model_dir = f"./outputs/model/{experiment_id}"
     config_variables = get_variables(training_folder)
 
-    update_config(path_config, config_variables)
+    config_file_path = update_config(path_config, config_variables)
 
     generate_backbone_checkpoint(backbone_folder)
 
+    object_detection_main_file_path = os.path.join(
+        object_detection_path, "model_main_tf2.py"
+    )
     # Launch training script
-    command = f"""python ./models/research/object_detection/model_main_tf2.py --pipeline_config_path={path_config} --model_dir={model_dir} --alsologtostderr --sample_1_of_n_eval_examples=1"""
+    command = f"""python {object_detection_main_file_path} --pipeline_config_path={config_file_path} --model_dir={model_dir} --alsologtostderr --sample_1_of_n_eval_examples=1"""
     subprocess.run(command.split(" "), check=True)
