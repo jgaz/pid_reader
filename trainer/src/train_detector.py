@@ -68,7 +68,7 @@ def get_variables(training_path: str):
     training_metadata = read_training_metadata(training_path)
     variables = {
         "NUM_CLASSES": int(training_metadata["num_classes"]),
-        "DIAGRAM_SIZE": int(training_metadata["width"]),
+        "DIAGRAM_SIZE": 500,  # Must match backbone training data??
         "BATCH_SIZE": 32,
         "TOTAL_STEPS": int(training_metadata["num_images_training"]) // 32,
         "PATH_BACKBONE": os.path.join(training_path, "backbone/checkpoint/"),
@@ -130,8 +130,8 @@ if __name__ == "__main__":
     )
 
     # Update config file information
-    path_config = "./deploy/configuration_detector.config"
-    model_dir = f"./outputs/model/{experiment_id}"
+    path_config = os.path.join(data_folder, "deploy/configuration_detector.config")
+    model_dir = os.path.join(data_folder, f"outputs/model/{experiment_id}")
     config_variables = get_variables(training_folder)
 
     config_file_path = update_config(path_config, config_variables)
@@ -143,4 +143,5 @@ if __name__ == "__main__":
     )
     # Launch training script
     command = f"""python {object_detection_main_file_path} --pipeline_config_path={config_file_path} --model_dir={model_dir} --alsologtostderr --sample_1_of_n_eval_examples=1"""
+    print(command)
     subprocess.run(command.split(" "), check=True)
