@@ -15,6 +15,17 @@ The data pipeline starts with an ordered collection of symbols placed
 
 ### Training for classification
 
+Training dataset generation, in this example, generate 128 diagrams, one symbol per diagram, with the diagram matters
+Lpiping and JInstrument and a size of 500x500:
+
+```bash
+python generate_set_diagrams.py --number_diagrams 128 --symbols_per_diagram 1 --diagram_matter L-Piping J-Instrument --diagram_size 500 500
+
+python generate_tensorflow.py --diagram_matter L-Piping J-Instrument
+```
+
+This will create a folder structure in the data directory
+
 ### Training for detection
 
 ## Status

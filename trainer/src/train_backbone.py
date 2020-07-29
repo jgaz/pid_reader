@@ -62,7 +62,7 @@ if __name__ == "__main__":
     LEARNING_RATE_EXP_DECAY = 0.8  # Set to 0.7 for <500K training set
 
     # Adjust 10 epochs to the total training samples we have
-    EPOCHS = 20
+    EPOCHS = 1
     steps_per_epoch = training_samples // (BATCH_SIZE * EPOCHS)
     training_dataset: tf.data.Dataset = read_data(
         data_folder, is_training=True, batch_size=BATCH_SIZE
@@ -103,12 +103,10 @@ if __name__ == "__main__":
         verbose=1,
     )
 
-    history = model.fit(
+    model.fit(
         training_dataset,
         validation_data=validation_dataset,
         steps_per_epoch=steps_per_epoch,
         epochs=EPOCHS,
         callbacks=[lr_decay, tensorboard_callback, checkpoint_callback],
     )
-
-    # We may not need the history since we are using the tensorboard callback
