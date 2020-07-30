@@ -24,9 +24,11 @@ python generate_set_diagrams.py --number_diagrams 128 --symbols_per_diagram 1 --
 python generate_tensorflow.py --diagram_matter L-Piping J-Instrument
 ```
 
-This will create a folder structure in the data directory
+This will create a folder structure in the data directory /tf/<hexId> with all the files needed for training.
 
 ### Training for detection
+
+
 
 ## Status
 
