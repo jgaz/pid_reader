@@ -147,6 +147,6 @@ if __name__ == "__main__":
     logger.info("Saving symbols dictionary")
     valid_symbols_dict = {}
     for i, symbol in enumerate(valid_symbols):
-        valid_symbols_dict[symbol.name] = i
+        valid_symbols_dict[symbol.name] = i + 1
     file_path = os.path.join(DIAGRAM_PATH, "classes.json")
     json.dump(valid_symbols_dict, open(file_path, "w"))

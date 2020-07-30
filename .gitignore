@@ -96,4 +96,4 @@ venv.bak/
 .idea/
 .retry
 
-data/
+data_generator/
