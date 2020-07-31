@@ -96,4 +96,6 @@ venv.bak/
 .idea/
 .retry
 
+# Data folders
 data_generator/
+data_trainer/
