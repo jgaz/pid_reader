@@ -1,11 +1,6 @@
 """
 This trains a detector based on the backbone of the given model
-
-Example:
-    python train_detector.py --experiment_id 21dc09821e6e4b722b93878a078977483ba798dd \
-        --data_folder ./ \
-        --extra_path https/storageaccountdatav9498.blob.core.windows.net/pub/
-        --object_detection_path
+The backbone higher layers should be compatible with a B0-Efficientnet
 
 """
 import argparse
