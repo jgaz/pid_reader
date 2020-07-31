@@ -3,14 +3,38 @@ from efficientnet.model import EfficientNet
 import collections
 
 
-class TrainingMetadata:
-    pass
-
-
 class ModelFactory:
+
+    """
+    EXPERIMENT ADDING PADDING LAYERS
+    does not work as EfficientDet is not a Sequential model
+
+    def find_layer_index_by_name(self, name: str, model: tfkeras.Model):
+        for idx, layer in enumerate(model.layers):
+            if layer.name == name:
+                return idx
+        raise Exception(f"Layer {name} not found")
+
+    def insert_padding_layer(self, model: tfkeras.Model, layer_name: str, padding: Tuple):
+        #  Inserts a padding/shrinking layer in a given model for compatibility in downstream models
+        layer_idx = self.find_layer_index_by_name(layer_name, model) + 1
+        layers = model.layers[:layer_idx] + \
+                 [tfkeras.layers.ZeroPadding2D(padding=padding, name=f"{layer_name}_padded")] + \
+                 [tfkeras.layers.Cropping2D(cropping=padding, name=f"{layer_name}_cropped")] + \
+                 model.layers[layer_idx:]
+        new_model = tfkeras.Sequential(layers)
+
+        return new_model
+
+    def insert_compatibility_layers(self, model: tfkeras.Model):
+        padding = ((0, 1), (0, 1))
+        new_model = self.insert_padding_layer(model, "block3b_add", padding)
+        return new_model
+
     def get_model_detector(self):
         # https://github.com/tensorflow/models/blob/master/research/object_detection/g3doc/tf2.md
         pass
+    """
 
     def get_model(self, image_size: int, classes: int) -> EfficientNet:
         shape_one_channel = (image_size, image_size, 1)

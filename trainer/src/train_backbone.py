@@ -5,9 +5,7 @@ import argparse
 import os
 import tensorflow as tf
 import tensorflow.keras as tfkeras
-from azureml.core import Run
 
-from config import MODEL_PATH, TENSORBOARD_PATH
 from data import read_training_metadata, read_data
 
 from model import ModelFactory
@@ -16,23 +14,29 @@ from model import ModelFactory
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Training the network")
     parser.add_argument(
-        "-e", "--experiment_id", required=True, type=str, help="""The experiment id"""
+        "--experiment_id", required=True, type=str, help="""The experiment id"""
     )
     parser.add_argument(
-        "-d",
-        "--data_folder",
-        required=True,
-        type=str,
-        help="""Where the training data is""",
+        "--data_folder", required=True, type=str, help="""Where the training data is""",
     )
     parser.add_argument(
         "--extra_path", required=True, type=str, help="""Where the training data is""",
+    )
+    parser.add_argument("--epochs", type=str, default=10)
+
+    parser.add_argument(
+        "--output_folder",
+        type=str,
+        help="Where to save the resulting model",
+        default="./outputs/",
     )
 
     args = parser.parse_args()
     experiment_id = args.experiment_id
     data_folder = args.data_folder
+    output_folder = args.output_folder
     extra_path = args.extra_path
+    epochs = int(args.epochs)
 
     data_folder = os.path.join(data_folder, extra_path)
     training_metadata = read_training_metadata(data_folder)
@@ -61,9 +65,8 @@ if __name__ == "__main__":
     LEARNING_RATE = 0.01
     LEARNING_RATE_EXP_DECAY = 0.8  # Set to 0.7 for <500K training set
 
-    # Adjust 10 epochs to the total training samples we have
-    EPOCHS = 1
-    steps_per_epoch = training_samples // (BATCH_SIZE * EPOCHS)
+    # Adjust steps per epoch to the total training samples we have
+    steps_per_epoch = training_samples // (BATCH_SIZE * epochs)
     training_dataset: tf.data.Dataset = read_data(
         data_folder, is_training=True, batch_size=BATCH_SIZE
     )
@@ -72,18 +75,16 @@ if __name__ == "__main__":
         validation_data_folder, is_training=False, batch_size=BATCH_SIZE
     )
 
-    # Logger
-    run = Run.get_context()
-
     lr_decay = tfkeras.callbacks.LearningRateScheduler(
         lambda epoch: LEARNING_RATE * LEARNING_RATE_EXP_DECAY ** epoch, verbose=True
     )
-
-    os.makedirs(MODEL_PATH, exist_ok=True)
-    os.makedirs(TENSORBOARD_PATH, exist_ok=True)
+    model_path = os.path.join(output_folder, experiment_id, "model")
+    tensorboard_path = os.path.join(output_folder, experiment_id, "tensorboard")
+    os.makedirs(model_path, exist_ok=True)
+    os.makedirs(tensorboard_path, exist_ok=True)
 
     tensorboard_callback = tfkeras.callbacks.TensorBoard(
-        TENSORBOARD_PATH, update_freq="epoch"
+        tensorboard_path, update_freq="epoch"
     )
     """
     Check out embeddings metadata :)
@@ -95,7 +96,7 @@ if __name__ == "__main__":
     """
 
     checkpoint_callback = tfkeras.callbacks.ModelCheckpoint(
-        MODEL_PATH,
+        os.path.join(model_path, "best_checkpoint"),
         monitor="val_loss",
         save_best_only=True,
         save_weights_only=False,
@@ -107,6 +108,6 @@ if __name__ == "__main__":
         training_dataset,
         validation_data=validation_dataset,
         steps_per_epoch=steps_per_epoch,
-        epochs=EPOCHS,
+        epochs=epochs,
         callbacks=[lr_decay, tensorboard_callback, checkpoint_callback],
     )

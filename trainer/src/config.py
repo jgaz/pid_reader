@@ -18,7 +18,4 @@ GENERATOR_PATH = os.path.join(SRC_PATH, "../../generator/")
 GENERATOR_TF_PATH = os.path.join(GENERATOR_PATH, "../data_generator/tf/")
 GENERATOR_METADATA_FILE = "training_metadata.yaml"
 
-MODEL_PATH = "outputs/model"  # AzureML puts its stuff there
-TENSORBOARD_PATH = "outputs/tensorboard"
-
 LOGGING_LEVEL = logging.INFO
