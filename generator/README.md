@@ -36,12 +36,14 @@ rotated 90 degrees and its size does vary.
 All this behaviour has been implemented in the generator with the exception of the lines, we need more experimentation around
 it, a priori it seems that the lines shouldn't confuse the classification task.
 
+The resulting dataset will be uploaded to an AzureBlob configured in the environment variable:
+`AZURE_STORAGE_CONNECTION_STRING`
+
 In this example, we generate 128 diagrams, one symbol per diagram, with the diagram matters
 Lpiping and JInstrument and a size of 500x500:
 
 ```bash
 python generate_set_diagrams.py --number_diagrams 128 --symbols_per_diagram 1 --diagram_matter L-Piping J-Instrument --diagram_size 500 500
-python generate_tensorflow.py --diagram_matter L-Piping J-Instrument
 ```
 
 This will create a folder structure in the data directory /tf/<hexId> with all the files needed for training, rougly:
