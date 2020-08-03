@@ -63,11 +63,11 @@ if __name__ == "__main__":
     experiment = Experiment(ws, name=experiment_name)
 
     script_params = {
-        "-d": dataset.as_named_input(dataset_name).as_download(),
+        "--data_folder": dataset.as_named_input(dataset_name).as_download(),
         "--extra_path": os.path.join(
             f"https/{ab.storage_account}.blob.core.windows.net/pub", f"{experiment_id}/"
         ),
-        "-e": f"{experiment_id}",
+        "--experiment_id": f"{experiment_id}",
     }
 
     # Estimator help: https://github.com/Azure/MachineLearningNotebooks/tree/master/how-to-use-azureml/training-with-deep-learning
