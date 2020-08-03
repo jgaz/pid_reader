@@ -34,7 +34,11 @@ logger = logging.getLogger(__name__)
 
 
 def get_categories_map(data_path: str) -> Dict[str, int]:
-    # Get the object names and Ids
+    """
+    Get the object names and Ids
+    :param data_path: path of the class file
+    :return:
+    """
     classes_filename = os.path.join(data_path, "classes.json")
     dictionary = json.load(open(classes_filename, "r"))
     return dictionary
@@ -65,6 +69,16 @@ def merge_json_annotations(full, partial):
 def save_metadata_yaml(
     json_annotation, label_map_dict, output_path, num_shards, diagram_matters, model_id
 ):
+    """
+    Saves a yaml file detailing metadata for the training dataset used.
+    :param json_annotation:
+    :param label_map_dict:
+    :param output_path:
+    :param num_shards:
+    :param diagram_matters:
+    :param model_id:
+    :return:
+    """
     logger.info(f"Obtained {len(json_annotation['images'])} images in json")
     logger.info(f"Obtained {len(json_annotation['annotations'])} annotations in json")
     size = (
