@@ -8,6 +8,7 @@ from random import shuffle
 from typing import List
 from PIL import Image
 from config import SYMBOL_DEBUG, LOGGING_LEVEL, DIAGRAM_PATH, CPU_COUNT
+from generate_tensorflow import generate_train_dataset
 from metadata import (
     SymbolStorage,
     BlockedSymbolsStorage,
@@ -150,3 +151,8 @@ if __name__ == "__main__":
         valid_symbols_dict[symbol.name] = i + 1
     file_path = os.path.join(DIAGRAM_PATH, "classes.json")
     json.dump(valid_symbols_dict, open(file_path, "w"))
+
+    # Generate tensorflow datasets and push it to Azure blob
+    model_id = generate_train_dataset(diagram_matters)
+
+    print(f"Dataset id generated: {model_id}")

@@ -1,18 +1,14 @@
 """
 
 """
-import argparse
 import hashlib
 import os
 from pathlib import Path
 import json
 import yaml
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
-from object_detection.protos.string_int_label_map_pb2 import (
-    StringIntLabelMap,
-    StringIntLabelMapItem,
-)
+from object_detection.protos.string_int_label_map_pb2 import StringIntLabelMap
 
 from config import (
     DIAGRAM_PATH,
@@ -66,10 +62,10 @@ def merge_json_annotations(full, partial):
     full["annotations"] += partial["annotations"]
 
 
-def save_metadata_yaml(json_annotation, label_map_dict, output_path, num_shards):
-    logger.info(
-        f"Processed {idx + 1} files, obtained {len(json_annotation['images'])} images in json"
-    )
+def save_metadata_yaml(
+    json_annotation, label_map_dict, output_path, num_shards, diagram_matters, model_id
+):
+    logger.info(f"Obtained {len(json_annotation['images'])} images in json")
     logger.info(f"Obtained {len(json_annotation['annotations'])} annotations in json")
     size = (
         json_annotation["images"][0]["width"],
@@ -115,37 +111,14 @@ def save_metadata_label_map(output_path: str, label_map_dict: Dict[str, int]):
         f.write(str(label_map).encode())
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        description="Generate Tensorflow records to train a vision model"
-    )
-    parser.add_argument(
-        "--diagram_matter",
-        type=str,
-        nargs="*",
-        help="""Matters of the diagram, at least two""",
-        choices=[
-            "P-Process",
-            "L-Piping",
-            "J-Instrument",
-            "H-HVAC",
-            "T-telecom",
-            "N-Structural",
-            "R-Mechanical",
-            "E-Electro",
-            "S-Safety",
-        ],
-        default=None,
-        required=True,
-    )
-    args = parser.parse_args()
-    if args.diagram_matter:
-        if type(args.diagram_matter) == list:
-            diagram_matters = args.diagram_matter
-        else:
-            diagram_matters = [args.diagram_matter]
-    else:
-        exit(-1)
+def generate_train_dataset(diagram_matters: List[str]) -> str:
+    """
+    Obtains all the diagrams from the data directory and stores them in appropriate
+    tensorflow format to train models. It saves training metadata file too.
+
+    :param diagram_matters:
+    :return:
+    """
     diagram_path = Path(DIAGRAM_PATH)
     label_map_dict = get_categories_map(str(diagram_path))
     logger.info(f"Obtained {len(label_map_dict)} label categories")
@@ -175,7 +148,6 @@ if __name__ == "__main__":
     # Save TF record in chunks
     num_shards = 20
     pool = multiprocessing.Pool(CPU_COUNT)
-    total_num_annotations_skipped = 0
     files_out = [
         output_path + "/%05d-of-%05d.tfrecord" % (i, num_shards)
         for i in range(num_shards)
@@ -204,8 +176,17 @@ if __name__ == "__main__":
         validation_filename,
     )
 
-    save_metadata_yaml(json_annotation, label_map_dict, output_path, num_shards)
+    save_metadata_yaml(
+        json_annotation=json_annotation,
+        label_map_dict=label_map_dict,
+        output_path=output_path,
+        num_shards=num_shards,
+        diagram_matters=diagram_matters,
+        model_id=model_id,
+    )
     save_metadata_label_map(output_path, label_map_dict)
 
     cs = AzureBlobCloudStorage()
     cs.store_directory(output_path, model_id)
+
+    return model_id
