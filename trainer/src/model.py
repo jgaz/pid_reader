@@ -53,7 +53,8 @@ class ModelFactory:
             input_tensor=None,
             input_shape=shape_one_channel,
             pooling=None,
-            classes=classes,
+            classes=classes
+            + 1,  # Model assumes class 0, no match exists, add it as it is not in the labels dictionary
             backend=tfkeras.backend,
             layers=tfkeras.layers,
             models=tfkeras.models,

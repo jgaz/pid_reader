@@ -39,12 +39,15 @@ def get_model(run: Run, experiment_id: int):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a training experiment in AzureML")
-    parser.add_argument("experiment_id", type=str, help="""The experiment id""")
+    parser.add_argument(
+        "experiment_id", type=str, required=True, help="""The experiment id"""
+    )
+    parser.add_argument("--epochs", type=str, default=10)
+
     args = parser.parse_args()
-    if args.experiment_id:
-        experiment_id = args.experiment_id
-    else:
-        exit(-1)
+
+    experiment_id = args.experiment_id
+    epochs = args.epochs
 
     ws = get_or_create_workspace(
         SUBSCRIPTION_ID, RESOURCE_GROUP, WORKSPACE_NAME, WORKSPACE_REGION
@@ -68,6 +71,7 @@ if __name__ == "__main__":
             f"https/{ab.storage_account}.blob.core.windows.net/pub", f"{experiment_id}/"
         ),
         "--experiment_id": f"{experiment_id}",
+        "--epochs": f"{epochs}",
     }
 
     # Estimator help: https://github.com/Azure/MachineLearningNotebooks/tree/master/how-to-use-azureml/training-with-deep-learning
