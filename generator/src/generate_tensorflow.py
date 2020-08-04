@@ -17,12 +17,14 @@ from config import (
     CPU_COUNT,
     GENERATOR_METADATA_FILE,
     GENERATOR_LABEL_FILE,
+    DIAGRAM_CLASSES_FILE,
 )
 import logging
 from metadata import (
     DiagramSymbolsStorage,
     TensorflowStorage,
     JsonTrainingObject,
+    TrainingDatasetLabelDictionaryStorage,
 )
 import multiprocessing
 import tensorflow.compat.v1 as tf
@@ -31,17 +33,6 @@ from ml_storage import AzureBlobCloudStorage
 
 logging.basicConfig(level=LOGGING_LEVEL)
 logger = logging.getLogger(__name__)
-
-
-def get_categories_map(data_path: str) -> Dict[str, int]:
-    """
-    Get the object names and Ids
-    :param data_path: path of the class file
-    :return:
-    """
-    classes_filename = os.path.join(data_path, "classes.json")
-    dictionary = json.load(open(classes_filename, "r"))
-    return dictionary
 
 
 def process_diagram(params) -> Tuple[tf.train.Example, JsonTrainingObject]:
@@ -117,6 +108,7 @@ def save_metadata_label_map(output_path: str, label_map_dict: Dict[str, int]):
     :return:
     """
     label_map = StringIntLabelMap()
+    print(label_map_dict)
     with open(os.path.join(output_path, GENERATOR_LABEL_FILE), "wb") as f:
         for name, id in label_map_dict.items():
             label_item = label_map.item.add()
@@ -133,8 +125,8 @@ def generate_train_dataset(diagram_matters: List[str]) -> str:
     :param diagram_matters:
     :return:
     """
-    diagram_path = Path(DIAGRAM_PATH)
-    label_map_dict = get_categories_map(str(diagram_path))
+
+    label_map_dict = TrainingDatasetLabelDictionaryStorage.get(DIAGRAM_PATH)
     logger.info(f"Obtained {len(label_map_dict)} label categories")
 
     json_annotation: JsonTrainingObject = {
@@ -147,6 +139,7 @@ def generate_train_dataset(diagram_matters: List[str]) -> str:
         ],
     }
 
+    diagram_path = Path(DIAGRAM_PATH)
     params = [
         (file_idx, file_name, label_map_dict)
         for file_idx, file_name in enumerate(diagram_path.glob("*.pickle"))

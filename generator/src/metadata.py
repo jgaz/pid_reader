@@ -1,5 +1,6 @@
 import hashlib
 import io
+import json
 import os
 import pickle
 import shutil
@@ -7,8 +8,8 @@ import shutil
 import PIL
 import pandas as pd
 from dataclasses import dataclass
-from typing import Tuple, List, TypedDict, Any
-from config import METADATA_PATH, DIAGRAM_PATH
+from typing import Tuple, List, TypedDict, Any, Dict
+from config import METADATA_PATH, DIAGRAM_PATH, DIAGRAM_CLASSES_FILE
 import tensorflow.compat.v1 as tf
 
 import logging
@@ -119,8 +120,11 @@ class DiagramSymbolsStorage:
     def save(self, hash: str, symbols: List[GenericSymbol]):
         pickle.dump(symbols, open(self._get_path(hash), "wb"))
 
-    def load(self, hash: str):
-        return pickle.load(open(self._get_path(hash), "rb"))
+    def load(self, hash: str = None, filename: str = None):
+        if filename:
+            return pickle.load(open(filename, "rb"))
+        elif hash:
+            return pickle.load(open(self._get_path(hash), "rb"))
 
 
 class DiagramStorage:
@@ -224,7 +228,6 @@ class TensorflowStorage:
             ymax.append(float(symbol.y + symbol.size_h) / height)
             classes_text.append(symbol.name.encode("utf8"))
             classes.append(label_map_dict[symbol.name])
-
             if ann_json_dict:
                 abs_xmin = int(symbol.x)
                 abs_ymin = int(symbol.y)
@@ -270,6 +273,26 @@ class TensorflowStorage:
         )
         return example, ann_json_dict
 
+    def get_feature_description(self):
+        return {
+            "image/height": tf.io.FixedLenFeature([], tf.int64),
+            "image/width": tf.io.FixedLenFeature([], tf.int64),
+            "image/filename": tf.io.VarLenFeature(tf.string),
+            "image/source_id": tf.io.VarLenFeature(tf.string),
+            "image/key/sha256": tf.io.VarLenFeature(tf.string),
+            "image/encoded": tf.io.VarLenFeature(tf.string),
+            "image/format": tf.io.VarLenFeature(tf.string),
+            "image/object/bbox/xmin": tf.io.VarLenFeature(tf.float32),
+            "image/object/bbox/xmax": tf.io.VarLenFeature(tf.float32),
+            "image/object/bbox/ymin": tf.io.VarLenFeature(tf.float32),
+            "image/object/bbox/ymax": tf.io.VarLenFeature(tf.float32),
+            "image/object/class/text": tf.io.VarLenFeature(tf.string),
+            "image/object/class/label": tf.io.VarLenFeature(tf.string),
+            "image/object/difficult": tf.io.VarLenFeature(tf.int64),
+            "image/object/truncated": tf.io.VarLenFeature(tf.int64),
+            "image/object/view": tf.io.VarLenFeature(tf.string),
+        }
+
     def _int64_feature(self, value):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
@@ -291,3 +314,25 @@ class TensorflowStorage:
         for annotation in tf_records["annotations"]:
             annotation["id"] = idx
             idx += 1
+
+
+class TrainingDatasetLabelDictionaryStorage:
+    @staticmethod
+    def save(valid_symbols: List[SymbolData]):
+        logger.info("Saving symbols dictionary")
+        valid_symbols_dict = {}
+        for i, symbol in enumerate(valid_symbols):
+            valid_symbols_dict[symbol.name] = i + 1
+        file_path = os.path.join(DIAGRAM_PATH, DIAGRAM_CLASSES_FILE)
+        json.dump(valid_symbols_dict, open(file_path, "w"))
+
+    @staticmethod
+    def get(data_path: str) -> Dict[str, int]:
+        """
+        Get the object names and Ids
+        :param data_path: path of the class file
+        :return:
+        """
+        classes_filename = os.path.join(data_path, DIAGRAM_CLASSES_FILE)
+        dictionary = json.load(open(classes_filename, "r"))
+        return dictionary

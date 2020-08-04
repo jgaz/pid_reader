@@ -2,12 +2,11 @@
 Generates a set of diagrams
 """
 import argparse
-import os
 import random
 from random import shuffle
 from typing import List
 from PIL import Image
-from config import SYMBOL_DEBUG, LOGGING_LEVEL, DIAGRAM_PATH, CPU_COUNT
+from config import SYMBOL_DEBUG, LOGGING_LEVEL, CPU_COUNT
 from generate_tensorflow import generate_train_dataset
 from metadata import (
     SymbolStorage,
@@ -15,10 +14,10 @@ from metadata import (
     DiagramSymbolsStorage,
     DiagramStorage,
     SymbolData,
+    TrainingDatasetLabelDictionaryStorage,
 )
 from symbol import GenericSymbol, SymbolGenerator, SymbolConfiguration, SymbolPositioner
 import logging
-import json
 import multiprocessing
 
 logging.basicConfig(level=LOGGING_LEVEL)
@@ -69,6 +68,20 @@ def generate_diagram(params):
     return diagram_symbols
 
 
+def generate_set_diagrams(
+    dss, diagram_size, symbols_per_diagram, valid_symbols, number_diagrams
+):
+    DiagramStorage.clear()
+    params = [
+        (dss, diagram_size, symbols_per_diagram, valid_symbols)
+        for _ in range(number_diagrams)
+    ]
+    pool = multiprocessing.Pool(CPU_COUNT)
+    pool.map(generate_diagram, params)
+    pool.close()
+    pool.join()
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Generate a set of diagrams and the input for the NNet"
@@ -114,12 +127,14 @@ if __name__ == "__main__":
         "--diagram_size",
         type=int,
         nargs=2,
-        help="Diagram size: 100 100",
+        help="Diagram size: 500 500",
         default=[1000, 1000],
     )
+    args = parser.parse_args()
+
     symbol_storage = SymbolStorage()
     dss = DiagramSymbolsStorage()
-    args = parser.parse_args()
+
     number_diagrams = int(args.number_diagrams[0])
     symbols_per_diagram = int(args.symbols_per_diagram[0])
     diagram_size = args.diagram_size
@@ -134,25 +149,14 @@ if __name__ == "__main__":
         random.choices(matters, k=2)
 
     valid_symbols = get_valid_symbols(symbol_storage, diagram_matters)
-    # Generate the diagrams in multiprocess
-    DiagramStorage.clear()
-    params = [
-        (dss, diagram_size, symbols_per_diagram, valid_symbols)
-        for i in range(number_diagrams)
-    ]
-    pool = multiprocessing.Pool(CPU_COUNT)
-    pool.map(generate_diagram, params)
-    pool.close()
-    pool.join()
 
-    logger.info("Saving symbols dictionary")
-    valid_symbols_dict = {}
-    for i, symbol in enumerate(valid_symbols):
-        valid_symbols_dict[symbol.name] = i + 1
-    file_path = os.path.join(DIAGRAM_PATH, "classes.json")
-    json.dump(valid_symbols_dict, open(file_path, "w"))
+    # Generate the diagrams in multiprocess
+    generate_set_diagrams(
+        dss, diagram_size, symbols_per_diagram, valid_symbols, number_diagrams
+    )
+
+    TrainingDatasetLabelDictionaryStorage.save(valid_symbols)
 
     # Generate tensorflow datasets and push it to Azure blob
     model_id = generate_train_dataset(diagram_matters)
-
     print(f"Dataset id generated: {model_id}")
