@@ -13,28 +13,12 @@ from config import (
     WORKSPACE_REGION,
     LOGGING_LEVEL,
     GPU_CLUSTER_NAME,
-    MODELS_DIRECTORY,
 )
 from data import get_or_create_dataset
-from ml_storage import AzureBlobCloudStorage
+from ml_storage import AzureBlobCloudStorage, ExperimentStorage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(LOGGING_LEVEL)
-
-
-def run_details(run: Run):
-    print(run.get_details())
-
-
-def get_model(run: Run, experiment_id: int):
-    model_path = f"./{MODELS_DIRECTORY}/{experiment_id}"
-    os.makedirs(model_path, exist_ok=True)
-
-    for f in run.get_file_names():
-        if f.startswith("outputs/model"):
-            output_file_path = os.path.join(model_path, f.split("/")[-1])
-            logger.info("Downloading from {} to {} ...".format(f, output_file_path))
-            run.download_file(name=f, output_file_path=output_file_path)
 
 
 if __name__ == "__main__":
@@ -93,9 +77,8 @@ if __name__ == "__main__":
 
     run.wait_for_completion(show_output=True)
 
-    run_details(run)
-
-    get_model(run, experiment_id)
+    es = ExperimentStorage(ws, experiment_id)
+    es.download_output(run)
 
     # Monitoring experiments
     # https://docs.microsoft.com/en-us/azure/machine-learning/how-to-track-experiments

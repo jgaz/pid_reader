@@ -3,6 +3,12 @@ import re
 from typing import List
 
 from azure.storage.blob import BlobServiceClient
+from azureml.core import Experiment, Workspace, Run
+
+from config import TRAINED_MODELS_PATH
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class CloudStorage:
@@ -78,15 +84,14 @@ class AzureBlobCloudStorage(CloudStorage):
 
 
 class ExperimentStorage:
-    def __init__(self, experiment_id: str, cloud_storage: CloudStorage):
+    def __init__(self, workspace: Workspace, experiment_id: str):
         self.experiment_id = experiment_id
-        self.could_storage = cloud_storage
+        self.experiment = Experiment(workspace, experiment_id)
 
-    def upload(self):
-        pass
-
-    def download(self):
-        pass
-
-    def get_url_files(self):
-        pass
+    def download_output(self, experiment_run=None):
+        if experiment_run is None:
+            experiment_run: Run = next(self.experiment.get_runs())
+        model_path = os.path.join(TRAINED_MODELS_PATH, self.experiment_id)
+        logger.info(f"Downloading results in {model_path}")
+        os.makedirs(model_path, exist_ok=True)
+        experiment_run.download_files("outputs/", model_path, append_prefix=False)
