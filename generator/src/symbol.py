@@ -171,13 +171,10 @@ class SymbolGenerator:
         if (
             symbol.orientation > 0
         ):  # This is problematic as the full image is rotated, adding a lot of padding
-            extra_padding = (
-                self.ASSEMBLY_IMAGE_SIZE[1]
-                - symbol.size_w
-                - self.ASSEMBLY_IMAGE_OFFSET[1]
-            )
+            extra_padding = self.ASSEMBLY_IMAGE_SIZE[1] - self.ASSEMBLY_IMAGE_OFFSET[1]
             if symbol.y + extra_padding > self.DIAGRAM_SIZE[1] - symbol.size_w:
                 symbol.y -= extra_padding
+
             if (
                 symbol.x + symbol.size_h + self.ASSEMBLY_IMAGE_OFFSET[0]
                 > self.DIAGRAM_SIZE[0]
