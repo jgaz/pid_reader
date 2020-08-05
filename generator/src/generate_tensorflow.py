@@ -17,7 +17,6 @@ from config import (
     CPU_COUNT,
     GENERATOR_METADATA_FILE,
     GENERATOR_LABEL_FILE,
-    DIAGRAM_CLASSES_FILE,
 )
 import logging
 from metadata import (
