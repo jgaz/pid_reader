@@ -40,18 +40,22 @@ The resulting dataset will be uploaded to an AzureBlob configured in the environ
 `AZURE_STORAGE_CONNECTION_STRING`
 
 In this example, we generate 128 diagrams, one symbol per diagram, with the diagram matters
-Lpiping and JInstrument and a size of 500x500:
+L-piping and J-Instrument and a size of 500x500:
 
 ```bash
 python generate_set_diagrams.py --number_diagrams 128 --symbols_per_diagram 1 --diagram_matter L-Piping J-Instrument --diagram_size 500 500
 ```
 
-This will create a folder structure in the data directory /tf/<hexId> with all the files needed for training, rougly:
+This will create a folder structure in the data directory /tf/<hexId> with all the files needed for training, roughly:
 - Tensorflow files for the data in binary format, for both training and validation.
 - Yaml file containing metadata about the training dataset.
 - Json file containing metadata about the training examples generated.
 
-For production purposes, using 500K examples yields 95% accuracy with around 400 classes, we will need around 6 hours of 2xK80 GPUs.
+For production purposes, using 500K examples yields 95% accuracy with around 400 classes,
+we will need around 6 hours of 2xK80 GPUs. The usual tradeoffs apply to these figures:
+- More classes / more similar symbols -> less accuracy
+- Bigger pictures (input) -> bigger model -> more accuracy
+- More training input -> more accuracy
 
 
 ### Dataset for detection
