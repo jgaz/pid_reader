@@ -63,6 +63,8 @@ if __name__ == "__main__":
     training_samples = training_metadata["num_images_training"]
     BATCH_SIZE = 32  # Gobal batch size.
     LEARNING_RATE = 0.01
+    # The exponential decay is executed every epoch, be aware as learning
+    # Rate can go quite small if epochs do not have many training steps.
     LEARNING_RATE_EXP_DECAY = 0.8  # Set to 0.7 for <500K training set
 
     # Adjust steps per epoch to the total training samples we have

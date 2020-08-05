@@ -2,8 +2,7 @@ import argparse
 import logging
 import os
 
-from azureml.train.dnn import TensorFlow
-from azureml.core import Experiment, Run, Environment, Workspace
+from azureml.core import Run, Environment, Workspace, Experiment
 
 from compute import get_or_create_workspace, get_or_create_detector_environment
 from config import (
@@ -12,7 +11,6 @@ from config import (
     WORKSPACE_NAME,
     WORKSPACE_REGION,
     LOGGING_LEVEL,
-    GPU_CLUSTER_NAME,
     MODELS_DIRECTORY,
 )
 from data import get_or_create_dataset
@@ -39,7 +37,8 @@ def get_model(run: Run, experiment_id: int):
 
 def copy_backbone_model(experiment_id: str, backbone_experiment_id: str):
     """
-    Copies the model into a backbone folder in the blob storage for the training data
+    Copies the model stored locally into a backbone folder
+    in the blob storage for the training data
     """
     cs = AzureBlobCloudStorage()
     local_path = os.path.join(MODELS_DIRECTORY, backbone_experiment_id)
@@ -78,21 +77,21 @@ if __name__ == "__main__":
     # Make sure training dataset exists
     dataset_name = f"detector_{experiment_id}"
     dataset = get_or_create_dataset(ws, files, dataset_name)
-    dataset.download("./")
-    """
 
     # Create the experiment
     experiment_name = f"detector_{experiment_id}"
     experiment = Experiment(ws, name=experiment_name)
 
+    blob_storage_path = f"https/{ab.storage_account}.blob.core.windows.net/pub"
+
     script_params = {
-        "--data_folder": "../data",
-        "--extra_path": f"https/{ab.storage_account}.blob.core.windows.net/pub",
+        "--training_data_path": dataset.as_named_input(dataset_name).as_download(),
+        "--extra_path": blob_storage_path,
         "--experiment_id": experiment_id,
-        "--backbone_experiment_id": backbone_experiment_id,
     }
     script_folder = "./"
 
+    """
     estimator = TensorFlow(
         source_directory=script_folder,
         compute_target=GPU_CLUSTER_NAME,

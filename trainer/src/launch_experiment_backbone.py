@@ -39,9 +39,7 @@ def get_model(run: Run, experiment_id: int):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run a training experiment in AzureML")
-    parser.add_argument(
-        "experiment_id", type=str, required=True, help="""The experiment id"""
-    )
+    parser.add_argument("experiment_id", type=str, help="""The experiment id""")
     parser.add_argument("--epochs", type=str, default=10)
 
     args = parser.parse_args()

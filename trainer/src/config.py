@@ -12,7 +12,7 @@ GPU_CLUSTER_NAME = "gpu-cluster"
 ENVIRONMENT_NAME_DETECTOR = "detector"
 
 SRC_PATH = os.path.dirname(os.path.realpath(__file__))
-MODELS_DIRECTORY = "../data/model"
+MODELS_DIRECTORY = "../../data/model"
 TRAINED_MODELS_PATH = os.path.join(SRC_PATH, MODELS_DIRECTORY)
 GENERATOR_PATH = os.path.join(SRC_PATH, "../../generator/")
 GENERATOR_TF_PATH = os.path.join(GENERATOR_PATH, "../data_generator/tf/")
