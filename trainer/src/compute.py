@@ -69,15 +69,23 @@ def get_or_create_gpu_cluster(
     return gpu_cluster
 
 
-def get_or_create_detector_environment(ws: Workspace) -> Environment:
-
-    try:
-        env = Environment.get(ENVIRONMENT_NAME_DETECTOR)
-    except Exception:
-        env = Environment(workspace=ws, name=ENVIRONMENT_NAME_DETECTOR)
+def get_or_create_detector_environment(
+    ws: Workspace, force_creation=False
+) -> Environment:
+    def _create_environment(ws, environment_name):
+        env = Environment(workspace=ws, name=environment_name)
         env.docker.enabled = True
-        docker_file_contents = open("./Dockerfile.detector", "r").read()
         env.docker.base_image = None
-        env.docker.base_dockerfile = docker_file_contents
+        env.docker.base_dockerfile = open("./Dockerfile.detector", "r").read()
+        env.python.user_managed_dependencies = True
+        # env.python.interpreter_path = "/usr/bin/python3" -> Does not work?
         env.register(workspace=ws)
-    return env
+        return env
+
+    if not force_creation:
+        try:
+            return Environment.get(ENVIRONMENT_NAME_DETECTOR)
+        except Exception:
+            pass
+
+    return _create_environment(ws, ENVIRONMENT_NAME_DETECTOR)

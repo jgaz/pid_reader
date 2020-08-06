@@ -1,4 +1,4 @@
-tensorflow
+tensorflow-gpu>=2.2.0
 jupyter
 azureml-sdk[notebooks]
 pyyaml

@@ -1,3 +1,43 @@
 FROM mcr.microsoft.com/azureml/base-gpu:openmpi3.1.2-cuda10.1-cudnn7-ubuntu18.04
-RUN apt update && apt install -y protobuf-compiler && pip install --upgrade pip
-RUN pip install --upgrade azureml-dataprep[fuse] tensorflow-gpu==2.2.0 pyyaml  && pip freeze
+RUN apt update && apt install -y protobuf-compiler
+RUN pip install --upgrade pip && pip install azureml-dataprep[fuse] \
+    tensorflow-gpu==2.2.0
+RUN conda update -n base -c defaults conda -y
+RUN pip install \
+  msrestazure \
+  azure-mgmt-resource \
+  azure-mgmt-authorization \
+  fusepy \
+  azureml_core \
+  azure-graphrbac \
+  azureml-dataprep \
+  applicationinsights \
+  json-logging-py \
+  liac-arff \
+  azureml-core \
+  msrest \
+  azureml-defaults \
+  azure-common
+# Cannot install MS packages from conda so installed via pip
+RUN conda install -y \
+    pyyaml \
+    pandas \
+    gunicorn \
+    configparser \
+    click \
+    Jinja2 \
+    itsdangerous \
+    python-dateutil \
+    six \
+    adal \
+    numpy \
+    pytz \
+    pandas \
+    requests \
+    dill \
+    pyarrow \
+    pyopenssl \
+    urllib3 \
+    cryptography \
+    ndg-httpsclient \
+    PyJWT

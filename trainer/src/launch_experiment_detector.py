@@ -3,6 +3,7 @@ import logging
 import os
 
 from azureml.core import Run, Environment, Workspace, Experiment
+from azureml.train.dnn import TensorFlow
 
 from compute import get_or_create_workspace, get_or_create_detector_environment
 from config import (
@@ -12,9 +13,10 @@ from config import (
     WORKSPACE_REGION,
     LOGGING_LEVEL,
     MODELS_DIRECTORY,
+    GPU_CLUSTER_NAME,
 )
 from data import get_or_create_dataset
-from ml_storage import AzureBlobCloudStorage
+from ml_storage import AzureBlobCloudStorage, ExperimentStorage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(LOGGING_LEVEL)
@@ -50,7 +52,7 @@ if __name__ == "__main__":
         SUBSCRIPTION_ID, RESOURCE_GROUP, WORKSPACE_NAME, WORKSPACE_REGION
     )
 
-    env: Environment = get_or_create_detector_environment(ws)
+    env: Environment = get_or_create_detector_environment(ws, force_creation=True)
 
     # Get the list of files from the blob
     ab = AzureBlobCloudStorage()
@@ -76,7 +78,6 @@ if __name__ == "__main__":
     }
     script_folder = "./"
 
-    """
     estimator = TensorFlow(
         source_directory=script_folder,
         compute_target=GPU_CLUSTER_NAME,
@@ -85,12 +86,12 @@ if __name__ == "__main__":
         framework_version="2.1",
         environment_definition=env,
     )
-
+    logger.info("Starting experiment")
     run: Run = experiment.submit(estimator)
 
     run.wait_for_completion(show_output=True)
 
+    logger.info("Experiment ended, downloading model")
     es = ExperimentStorage(ws, experiment_id)
     es.download_output(run)
-
-    """
+    logger.info("All done!")
