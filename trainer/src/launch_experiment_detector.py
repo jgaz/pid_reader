@@ -80,7 +80,9 @@ if __name__ == "__main__":
 
     estimator = TensorFlow(
         source_directory=script_folder,
+        # Use 'local' for using local docker
         compute_target=GPU_CLUSTER_NAME,
+        # compute_target='local',
         script_params=script_params,
         entry_script="train_detector.py",
         framework_version="2.1",

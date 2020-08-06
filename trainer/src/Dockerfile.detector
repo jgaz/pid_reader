@@ -1,24 +1,9 @@
 FROM mcr.microsoft.com/azureml/base-gpu:openmpi3.1.2-cuda10.1-cudnn7-ubuntu18.04
+# Needed protobuff for Object Detection API
 RUN apt update && apt install -y protobuf-compiler
-RUN pip install --upgrade pip && pip install azureml-dataprep[fuse] \
-    tensorflow-gpu==2.2.0
+# Need to update conda as it can be quite old
 RUN conda update -n base -c defaults conda -y
-RUN pip install \
-  msrestazure \
-  azure-mgmt-resource \
-  azure-mgmt-authorization \
-  fusepy \
-  azureml_core \
-  azure-graphrbac \
-  azureml-dataprep \
-  applicationinsights \
-  json-logging-py \
-  liac-arff \
-  azureml-core \
-  msrest \
-  azureml-defaults \
-  azure-common
-# Cannot install MS packages from conda so installed via pip
+# Install popular packages from conda
 RUN conda install -y \
     pyyaml \
     pandas \
@@ -41,3 +26,25 @@ RUN conda install -y \
     cryptography \
     ndg-httpsclient \
     PyJWT
+RUN pip install --upgrade pip && pip install azureml-dataprep[fuse] \
+    tensorflow-gpu==2.2.0
+
+# Conda old version of ruamel_yaml does not let azure stuff to install
+RUN conda remove --force -y ruamel_yaml
+
+# Cannot install MS packages from conda so installed via pip
+RUN pip install \
+  msrestazure \
+  azure-mgmt-resource \
+  azure-mgmt-authorization \
+  fusepy \
+  azureml_core \
+  azure-graphrbac \
+  azureml-dataprep \
+  applicationinsights \
+  json-logging-py \
+  liac-arff \
+  azureml-core \
+  msrest \
+  azureml-defaults \
+  azure-common

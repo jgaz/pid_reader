@@ -78,7 +78,6 @@ def get_or_create_detector_environment(
         env.docker.base_image = None
         env.docker.base_dockerfile = open("./Dockerfile.detector", "r").read()
         env.python.user_managed_dependencies = True
-        # env.python.interpreter_path = "/usr/bin/python3" -> Does not work?
         env.register(workspace=ws)
         return env
 
