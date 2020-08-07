@@ -86,6 +86,7 @@ if __name__ == "__main__":
         "--training_data_path": dataset.as_named_input(dataset_name).as_download(),
         "--extra_path": blob_storage_path,
         "--experiment_id": experiment_id,
+        "--backbone_path": f"backbone/{backbone_experiment_id}/model/best_checkpoint",
     }
     script_folder = "./"
 

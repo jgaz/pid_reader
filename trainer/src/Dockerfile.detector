@@ -26,8 +26,7 @@ RUN conda install -y \
     cryptography \
     ndg-httpsclient \
     PyJWT
-RUN pip install --upgrade pip && pip install azureml-dataprep[fuse] \
-    tensorflow-gpu==2.2.0
+RUN pip install --upgrade pip && pip install tensorflow-gpu==2.3.0
 
 # Conda old version of ruamel_yaml does not let azure stuff to install
 RUN conda remove --force -y ruamel_yaml
@@ -41,6 +40,7 @@ RUN pip install \
   azureml_core \
   azure-graphrbac \
   azureml-dataprep \
+  azureml-dataprep[fuse] \
   applicationinsights \
   json-logging-py \
   liac-arff \

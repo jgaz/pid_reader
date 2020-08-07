@@ -7,11 +7,19 @@ import argparse
 import logging
 import os
 import subprocess
+import time
 from shutil import copyfile
 
 from typing import Dict
 
-from config import LOGGING_LEVEL
+from compute import get_or_create_workspace
+from config import (
+    LOGGING_LEVEL,
+    SUBSCRIPTION_ID,
+    RESOURCE_GROUP,
+    WORKSPACE_NAME,
+    WORKSPACE_REGION,
+)
 from data import read_training_metadata
 
 
@@ -33,15 +41,14 @@ def install_tf2_object_detection():
         command = "git clone --depth 1 https://github.com/jgaz/models".split(" ")
         subprocess.run(command, check=False)
 
-        command = "protoc object_detection/protos/*.proto --python_out=.".split(" ")
-        subprocess.run(command, check=False, cwd="./models/research/")
-
+        command = "protoc --python_out=. ./object_detection/protos/*.proto"
+        subprocess.run(command, check=False, cwd="./models/research/", shell=True)
         copyfile(
             "./models/research/object_detection/packages/tf2/setup.py",
             "./models/research/setup.py",
         )
-        command = "python -m pip install .".split(" ")
-        subprocess.run(command, check=True, cwd="models/research/")
+        command = "pip install ."
+        subprocess.run(command, check=True, cwd="models/research/", shell=True)
 
 
 def update_config(config_path: str, variables_to_setup: Dict[str, str]) -> str:
@@ -130,7 +137,7 @@ if __name__ == "__main__":
     if backbone_path == "":
         backbone_folder = os.path.join(training_folder, "backbone")
     else:
-        backbone_folder = backbone_path
+        backbone_folder = os.path.join(training_folder, backbone_path)
 
     model_dir = os.path.join(output_model_path, f"{experiment_id}")
     os.makedirs(model_dir, exist_ok=True)
