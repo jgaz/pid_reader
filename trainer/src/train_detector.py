@@ -34,7 +34,7 @@ def install_tf2_object_detection():
         subprocess.run(command, check=False)
 
         command = "protoc object_detection/protos/*.proto --python_out=.".split(" ")
-        subprocess.run(command, check=False, cwd="models/research/")
+        subprocess.run(command, check=False, cwd="./models/research/")
 
         copyfile(
             "./models/research/object_detection/packages/tf2/setup.py",
@@ -132,8 +132,8 @@ if __name__ == "__main__":
     else:
         backbone_folder = backbone_path
 
-    model_dir = os.path.join(output_model_path, f"{experiment_id}\n\n")
-    os.makedirs(model_dir)
+    model_dir = os.path.join(output_model_path, f"{experiment_id}")
+    os.makedirs(model_dir, exist_ok=True)
 
     # Update config file information
     path_config = "./deploy/configuration_detector.config"

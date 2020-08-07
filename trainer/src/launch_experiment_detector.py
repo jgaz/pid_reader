@@ -43,10 +43,21 @@ if __name__ == "__main__":
         type=str,
         help="""The backbone model experiment id""",
     )
+    parser.add_argument(
+        "--run_local",
+        type=bool,
+        help="Whether to run the computation in local computer",
+        default=False,
+    )
 
     args = parser.parse_args()
     experiment_id = args.experiment_id
+    run_local = args.run_local
     backbone_experiment_id = args.backbone_experiment_id
+
+    compute_target = GPU_CLUSTER_NAME
+    if run_local:
+        compute_target = "local"
 
     ws: Workspace = get_or_create_workspace(
         SUBSCRIPTION_ID, RESOURCE_GROUP, WORKSPACE_NAME, WORKSPACE_REGION
@@ -80,9 +91,7 @@ if __name__ == "__main__":
 
     estimator = TensorFlow(
         source_directory=script_folder,
-        # Use 'local' for using local docker
-        compute_target=GPU_CLUSTER_NAME,
-        # compute_target='local',
+        compute_target=compute_target,
         script_params=script_params,
         entry_script="train_detector.py",
         framework_version="2.1",
