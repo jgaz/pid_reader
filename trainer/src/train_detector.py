@@ -7,19 +7,11 @@ import argparse
 import logging
 import os
 import subprocess
-import time
 from shutil import copyfile
 
 from typing import Dict
 
-from compute import get_or_create_workspace
-from config import (
-    LOGGING_LEVEL,
-    SUBSCRIPTION_ID,
-    RESOURCE_GROUP,
-    WORKSPACE_NAME,
-    WORKSPACE_REGION,
-)
+from config import LOGGING_LEVEL
 from data import read_training_metadata
 
 
@@ -72,7 +64,7 @@ def get_variables(training_path: str, backbone_path: str):
     variables = {
         "NUM_CLASSES": int(training_metadata["num_classes"]),
         "DIAGRAM_SIZE": 500,  # Must match backbone training data??
-        "BATCH_SIZE": 32,
+        "BATCH_SIZE": 16,
         "TOTAL_STEPS": int(training_metadata["num_images_training"]) // 32,
         "PATH_LABEL_MAP": os.path.join(training_path, "label_map.pbtxt"),
         "TRAINING_PATH": os.path.join(training_path, "?????-of-000??.tfrecord"),
