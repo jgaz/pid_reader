@@ -5,8 +5,8 @@ import os
 from azureml.core import Run, Environment, Workspace, Experiment
 from azureml.train.dnn import TensorFlow
 
-from compute import get_or_create_workspace, get_or_create_detector_environment
-from config import (
+from trainer.compute import get_or_create_workspace, get_or_create_detector_environment
+from trainer.config import (
     SUBSCRIPTION_ID,
     RESOURCE_GROUP,
     WORKSPACE_NAME,
@@ -15,8 +15,8 @@ from config import (
     MODELS_DIRECTORY,
     GPU_CLUSTER_NAME,
 )
-from data import get_or_create_dataset
-from ml_storage import AzureBlobCloudStorage, ExperimentStorage
+from trainer.data import get_or_create_dataset
+from trainer.ml_storage import AzureBlobCloudStorage, ExperimentStorage
 
 logger = logging.getLogger(__name__)
 logger.setLevel(LOGGING_LEVEL)

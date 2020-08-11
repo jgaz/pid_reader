@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
 from efficientnet.tfkeras import preprocess_input
 
-from config import MODELS_DIRECTORY
+from trainer.config import MODELS_DIRECTORY
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run model inference in EfficientNet")

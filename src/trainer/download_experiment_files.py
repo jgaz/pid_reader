@@ -2,9 +2,14 @@ import argparse
 
 from azureml.core import Workspace
 
-from compute import get_or_create_workspace
-from config import SUBSCRIPTION_ID, RESOURCE_GROUP, WORKSPACE_NAME, WORKSPACE_REGION
-from ml_storage import ExperimentStorage
+from trainer.compute import get_or_create_workspace
+from trainer.config import (
+    SUBSCRIPTION_ID,
+    RESOURCE_GROUP,
+    WORKSPACE_NAME,
+    WORKSPACE_REGION,
+)
+from trainer.ml_storage import ExperimentStorage
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

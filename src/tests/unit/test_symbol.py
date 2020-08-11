@@ -1,6 +1,6 @@
 import logging
 
-from symbol import SymbolConfiguration, GenericSymbol, SymbolGenerator
+from generator.symbol import SymbolConfiguration, GenericSymbol, SymbolGenerator
 
 logger = logging.getLogger(__name__)
 

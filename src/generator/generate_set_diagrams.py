@@ -6,9 +6,9 @@ import random
 from random import shuffle
 from typing import List
 from PIL import Image
-from config import SYMBOL_DEBUG, LOGGING_LEVEL, CPU_COUNT
-from generate_tensorflow import generate_train_dataset
-from metadata import (
+from generator.config import SYMBOL_DEBUG, LOGGING_LEVEL, CPU_COUNT
+from generator.generate_tensorflow import generate_train_dataset
+from generator.metadata import (
     SymbolStorage,
     BlockedSymbolsStorage,
     DiagramSymbolsStorage,
@@ -16,7 +16,12 @@ from metadata import (
     SymbolData,
     TrainingDatasetLabelDictionaryStorage,
 )
-from symbol import GenericSymbol, SymbolGenerator, SymbolConfiguration, SymbolPositioner
+from generator.symbol import (
+    GenericSymbol,
+    SymbolGenerator,
+    SymbolConfiguration,
+    SymbolPositioner,
+)
 import logging
 import multiprocessing
 

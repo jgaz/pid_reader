@@ -5,7 +5,7 @@ from typing import List
 from azure.storage.blob import BlobServiceClient
 from azureml.core import Experiment, Workspace, Run
 
-from config import TRAINED_MODELS_PATH
+from trainer.config import TRAINED_MODELS_PATH
 import logging
 
 logger = logging.getLogger(__name__)

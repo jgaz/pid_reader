@@ -11,8 +11,12 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import yaml
 
-from config import GENERATOR_TF_PATH, TRAINED_MODELS_PATH, GENERATOR_METADATA_FILE
-from data import read_data
+from trainer.config import (
+    GENERATOR_TF_PATH,
+    TRAINED_MODELS_PATH,
+    GENERATOR_METADATA_FILE,
+)
+from trainer.data import read_data
 
 
 def confusion_matrix(experiment_id: str):

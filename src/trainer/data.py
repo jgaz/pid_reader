@@ -6,7 +6,7 @@ from azureml.core import Dataset, Workspace
 import tensorflow as tf
 import logging
 
-from config import LOGGING_LEVEL
+from trainer.config import LOGGING_LEVEL
 
 logger = logging.getLogger(__name__)
 logger.setLevel(LOGGING_LEVEL)

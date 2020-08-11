@@ -6,9 +6,9 @@ import os
 import tensorflow as tf
 import tensorflow.keras as tfkeras
 
-from data import read_training_metadata, read_data
+from trainer.data import read_training_metadata, read_data
 
-from model import ModelFactory
+from trainer.model import ModelFactory
 
 
 if __name__ == "__main__":

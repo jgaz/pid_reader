@@ -9,7 +9,7 @@ import pandas as pd
 from PIL import Image, ImageOps
 from PIL import ImageDraw
 from PIL import ImageFont
-from config import (
+from generator.config import (
     PNG_SYMBOL_PATH,
     FONT_PATH,
     SYMBOL_DEBUG,

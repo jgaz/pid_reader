@@ -5,7 +5,7 @@ import logging
 
 from azureml.exceptions import ProjectSystemException
 
-from config import ENVIRONMENT_NAME_DETECTOR
+from trainer.config import ENVIRONMENT_NAME_DETECTOR
 
 logger = logging.getLogger(__name__)
 

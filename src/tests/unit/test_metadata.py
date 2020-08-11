@@ -2,7 +2,7 @@ import logging
 
 import pandas as pd
 
-from metadata import SymbolStorage, BlockedSymbolsStorage, SymbolData
+from generator.metadata import SymbolStorage, BlockedSymbolsStorage, SymbolData
 
 logger = logging.getLogger(__name__)
 

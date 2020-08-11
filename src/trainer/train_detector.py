@@ -11,8 +11,8 @@ from shutil import copyfile
 
 from typing import Dict
 
-from config import LOGGING_LEVEL
-from data import read_training_metadata
+from trainer.config import LOGGING_LEVEL
+from trainer.data import read_training_metadata
 
 
 logger = logging.getLogger(__name__)

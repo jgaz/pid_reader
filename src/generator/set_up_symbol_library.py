@@ -4,9 +4,9 @@
 import argparse
 import logging
 
-from cad_converter import find_symbol_file, collect_dwg_file, dxf_to_png
-from ccf_reader import parse_ccf_file
-from metadata import SymbolStorage
+from generator.cad_converter import find_symbol_file, collect_dwg_file, dxf_to_png
+from generator.ccf_reader import parse_ccf_file
+from generator.metadata import SymbolStorage
 
 
 if __name__ == "__main__":

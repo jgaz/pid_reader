@@ -9,12 +9,12 @@ import PIL
 import pandas as pd
 from dataclasses import dataclass
 from typing import Tuple, List, TypedDict, Any, Dict
-from config import METADATA_PATH, DIAGRAM_PATH, DIAGRAM_CLASSES_FILE
+from generator.config import METADATA_PATH, DIAGRAM_PATH, DIAGRAM_CLASSES_FILE
 import tensorflow.compat.v1 as tf
 
 import logging
 
-from symbol import GenericSymbol
+from generator.symbol import GenericSymbol
 
 logger = logging.getLogger(__name__)
 

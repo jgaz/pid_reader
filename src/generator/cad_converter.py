@@ -4,7 +4,7 @@ Convert CAD pictures into PNGs
 import logging
 import os
 from typing import List, Dict
-from config import DATA_PATH, SYMBOL_SOURCE_RESOLUTIONS
+from generator.config import DATA_PATH, SYMBOL_SOURCE_RESOLUTIONS
 from subprocess import check_output, check_call
 from shutil import copyfile
 

@@ -8,7 +8,7 @@ import json
 import yaml
 from typing import Dict, Tuple, List
 
-from config import (
+from generator.config import (
     DIAGRAM_PATH,
     LOGGING_LEVEL,
     TENSORFLOW_PATH,
@@ -17,7 +17,7 @@ from config import (
     GENERATOR_LABEL_FILE,
 )
 import logging
-from metadata import (
+from generator.metadata import (
     DiagramSymbolsStorage,
     TensorflowStorage,
     JsonTrainingObject,
@@ -26,7 +26,7 @@ from metadata import (
 import multiprocessing
 import tensorflow.compat.v1 as tf
 
-from ml_storage import AzureBlobCloudStorage
+from trainer.ml_storage import AzureBlobCloudStorage
 
 logging.basicConfig(level=LOGGING_LEVEL)
 logger = logging.getLogger(__name__)
