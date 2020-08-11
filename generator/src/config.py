@@ -9,6 +9,7 @@ FONT_PATH = os.path.join(DATA_PATH, "fonts")
 METADATA_PATH = os.path.join(DATA_PATH, "metadata")
 PNG_SYMBOL_PATH = os.path.join(DATA_PATH, "symbol_libraries", "png")
 
+TRAINED_MODELS_PATH = ""
 DIAGRAM_CLASSES_FILE = "classes.json"
 
 GENERATOR_METADATA_FILE = "training_metadata.yaml"

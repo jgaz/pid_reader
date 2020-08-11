@@ -172,10 +172,10 @@ class TensorflowStorage:
         by the raw data.
 
         Args:
-            image_name: name of the generated diagram
+            full_path: name of the generated diagram
             metadata: metadata of the diagram
             label_map_dict: A map from symbol names to integers ids.
-            ann_json_dict: annotation json dictionary.
+            file_idx: annotation json dictionary.
 
         Returns:
           example: The converted tf.Example.

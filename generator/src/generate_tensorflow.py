@@ -8,8 +8,6 @@ import json
 import yaml
 from typing import Dict, Tuple, List
 
-from object_detection.protos.string_int_label_map_pb2 import StringIntLabelMap
-
 from config import (
     DIAGRAM_PATH,
     LOGGING_LEVEL,
@@ -106,6 +104,8 @@ def save_metadata_label_map(output_path: str, label_map_dict: Dict[str, int]):
     :param label_map_dict:
     :return:
     """
+    from object_detection.protos.string_int_label_map_pb2 import StringIntLabelMap
+
     label_map = StringIntLabelMap()
     print(label_map_dict)
     with open(os.path.join(output_path, GENERATOR_LABEL_FILE), "wb") as f:
