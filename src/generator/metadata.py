@@ -9,12 +9,15 @@ import PIL
 import pandas as pd
 from dataclasses import dataclass
 from typing import Tuple, List, TypedDict, Any, Dict
+
+import yaml
 from generator.config import METADATA_PATH, DIAGRAM_PATH, DIAGRAM_CLASSES_FILE
 import tensorflow.compat.v1 as tf
 
 import logging
 
 from generator.symbol import GenericSymbol
+from trainer.config import GENERATOR_TF_PATH, GENERATOR_METADATA_FILE
 
 logger = logging.getLogger(__name__)
 
@@ -314,6 +317,13 @@ class TensorflowStorage:
         for annotation in tf_records["annotations"]:
             annotation["id"] = idx
             idx += 1
+
+    @staticmethod
+    def load_training_metadata(experiment_id):
+        training_metadata_file = os.path.join(
+            GENERATOR_TF_PATH, experiment_id, GENERATOR_METADATA_FILE
+        )
+        return yaml.full_load(open(training_metadata_file, "r"))
 
 
 class TrainingDatasetLabelDictionaryStorage:

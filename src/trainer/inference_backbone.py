@@ -2,6 +2,8 @@ import argparse
 
 import numpy as np
 import os
+
+from generator.metadata import TensorflowStorage
 from skimage.io import imread
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
@@ -37,4 +39,8 @@ if __name__ == "__main__":
     x = np.expand_dims(x, 0)
     y = model.predict(x)
 
-    print(y)
+    metadata = TensorflowStorage.load_training_metadata(
+        experiment_id=args.experiment_id
+    )
+    idx = np.argmax(y)
+    print(metadata.label_id_mapping[idx])

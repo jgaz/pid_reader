@@ -10,6 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import yaml
+from generator.metadata import TensorflowStorage
 
 from trainer.config import (
     GENERATOR_TF_PATH,
@@ -105,18 +106,13 @@ def load_data(
     return validation_dataset, y
 
 
-def load_training_metadata(experiment_id):
-    training_metadata_file = os.path.join(
-        GENERATOR_TF_PATH, experiment_id, GENERATOR_METADATA_FILE
-    )
-    return yaml.full_load(open(training_metadata_file, "r"))
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Training the network")
     parser.add_argument("experiment_id", type=str, help="""The experiment id""")
     args = parser.parse_args()
-    training_metadata = load_training_metadata(experiment_id=args.experiment_id)
+    training_metadata = TensorflowStorage.load_training_metadata(
+        experiment_id=args.experiment_id
+    )
     label_id_mapping = training_metadata["label_id_mapping"]
     normal_confusion_matrix, classes = confusion_matrix(args.experiment_id)
     plot_confusion_matrix(normal_confusion_matrix, classes, args.experiment_id)
