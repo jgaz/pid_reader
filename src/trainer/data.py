@@ -63,20 +63,36 @@ class DataIngestorBackbone:
         image /= scale
         return image
 
-    def decode_image(self, record):
+    def decode_image(self, image_bit_string):
         """Decodes the image and set its static shape."""
-        image = tf.io.decode_png(record["image/encoded"], channels=1)
+        image = tf.io.decode_png(image_bit_string, channels=1)
         image = self.normalize_image(image)
         return image
 
-    def _select_data_from_record(self, record):
-        x = self.decode_image(record=record)
+    def select_data_from_record(self, record):
+        x = self.decode_image(record["image/encoded"])
         y = record["image/object/class/label"]
         return x, y
+
+    def transform_and_filter(self, ds: tf.data.Dataset):
+        """
+        Map from example into viable fit input
+        """
+        ds = ds.map(
+            self.decode_record, num_parallel_calls=tf.data.experimental.AUTOTUNE
+        )
+        ds = ds.map(
+            self.select_data_from_record,
+            num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        )
+        return ds
 
     def read_data(
         self, data_folder: str, is_training: bool = True, batch_size: int = 8
     ) -> tf.data.Dataset:
+        """
+
+        """
         path = os.path.join(data_folder, "*.tfrecord")
         files_dataset = tf.data.Dataset.list_files(path)
         ds: tf.data.Dataset = tf.data.TFRecordDataset(
@@ -90,14 +106,7 @@ class DataIngestorBackbone:
             ds = ds.shuffle(100)
             ds = ds.repeat()
 
-        # Map from example into viable fit input
-        ds = ds.map(
-            self.decode_record, num_parallel_calls=tf.data.experimental.AUTOTUNE
-        )
-        ds = ds.map(
-            self._select_data_from_record,
-            num_parallel_calls=tf.data.experimental.AUTOTUNE,
-        )
+        self.transform_and_filter(ds)
 
         if batch_size > 0:
             ds = ds.batch(batch_size, drop_remainder=is_training)
