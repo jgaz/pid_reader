@@ -3,6 +3,7 @@ import argparse
 import numpy as np
 import os
 
+from efficientnet.preprocessing import center_crop_and_resize
 from generator.metadata import TensorflowStorage
 from skimage.io import imread
 import matplotlib.pyplot as plt
@@ -10,6 +11,9 @@ from tensorflow.keras.models import load_model
 from efficientnet.tfkeras import preprocess_input
 
 from trainer.config import MODELS_DIRECTORY
+from trainer.models.official.vision.image_classification.efficientnet.efficientnet_model import (
+    EfficientNet,
+)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run model inference in EfficientNet")
@@ -28,13 +32,15 @@ if __name__ == "__main__":
     model_path = os.path.join(
         MODELS_DIRECTORY, experiment_id, experiment_id, "model/best_checkpoint"
     )
-    model = load_model(model_path)
+    model: EfficientNet = load_model(model_path)
 
     image = imread(image_file)
     plt.figure(figsize=(5, 5))
     plt.imshow(image)
-    plt.show()
+    # plt.show()
 
+    image_size = model.input_shape[1]
+    x = center_crop_and_resize(image, image_size=image_size)
     x = preprocess_input(image)
     x = np.expand_dims(x, 0)
     y = model.predict(x)
@@ -43,4 +49,4 @@ if __name__ == "__main__":
         experiment_id=args.experiment_id
     )
     idx = np.argmax(y)
-    print(metadata.label_id_mapping[idx])
+    print(f"Index: {idx} symbol:{metadata['label_id_mapping'][idx]}")

@@ -276,26 +276,6 @@ class TensorflowStorage:
         )
         return example, ann_json_dict
 
-    def get_feature_description(self):
-        return {
-            "image/height": tf.io.FixedLenFeature([], tf.int64),
-            "image/width": tf.io.FixedLenFeature([], tf.int64),
-            "image/filename": tf.io.VarLenFeature(tf.string),
-            "image/source_id": tf.io.VarLenFeature(tf.string),
-            "image/key/sha256": tf.io.VarLenFeature(tf.string),
-            "image/encoded": tf.io.VarLenFeature(tf.string),
-            "image/format": tf.io.VarLenFeature(tf.string),
-            "image/object/bbox/xmin": tf.io.VarLenFeature(tf.float32),
-            "image/object/bbox/xmax": tf.io.VarLenFeature(tf.float32),
-            "image/object/bbox/ymin": tf.io.VarLenFeature(tf.float32),
-            "image/object/bbox/ymax": tf.io.VarLenFeature(tf.float32),
-            "image/object/class/text": tf.io.VarLenFeature(tf.string),
-            "image/object/class/label": tf.io.VarLenFeature(tf.string),
-            "image/object/difficult": tf.io.VarLenFeature(tf.int64),
-            "image/object/truncated": tf.io.VarLenFeature(tf.int64),
-            "image/object/view": tf.io.VarLenFeature(tf.string),
-        }
-
     def _int64_feature(self, value):
         return tf.train.Feature(int64_list=tf.train.Int64List(value=[value]))
 
@@ -310,6 +290,47 @@ class TensorflowStorage:
 
     def _float_list_feature(self, value):
         return tf.train.Feature(float_list=tf.train.FloatList(value=value))
+
+    @staticmethod
+    def get_feature_description():
+        return {
+            "image/height": tf.io.FixedLenFeature([], tf.int64),
+            "image/width": tf.io.FixedLenFeature([], tf.int64),
+            "image/filename": tf.io.VarLenFeature(tf.string),
+            "image/source_id": tf.io.VarLenFeature(tf.string),
+            "image/key/sha256": tf.io.VarLenFeature(tf.string),
+            "image/encoded": tf.io.VarLenFeature(tf.string),
+            "image/format": tf.io.VarLenFeature(tf.string),
+            "image/object/bbox/xmin": tf.io.VarLenFeature(tf.float32),
+            "image/object/bbox/xmax": tf.io.VarLenFeature(tf.float32),
+            "image/object/bbox/ymin": tf.io.VarLenFeature(tf.float32),
+            "image/object/bbox/ymax": tf.io.VarLenFeature(tf.float32),
+            "image/object/class/text": tf.io.VarLenFeature(tf.string),
+            "image/object/class/label": tf.io.VarLenFeature(tf.int64),
+            "image/object/difficult": tf.io.VarLenFeature(tf.int64),
+            "image/object/truncated": tf.io.VarLenFeature(tf.int64),
+            "image/object/view": tf.io.VarLenFeature(tf.string),
+        }
+
+    @staticmethod
+    def get_sample_from_dataset(filenames: List[str]):
+        raw_dataset = tf.data.TFRecordDataset(filenames)
+        raw_record = raw_dataset.take(1)
+        example = tf.train.Example()
+        example.ParseFromString(raw_record.numpy())
+
+    @staticmethod
+    def parse_dataset(filenames: List[str]):
+        raw_dataset = tf.data.TFRecordDataset(filenames)
+
+        # Create a dictionary describing the features.
+        feature_description = TensorflowStorage.get_feature_description()
+
+        def _parse_image_function(example_proto):
+            # Parse the input tf.Example proto using the dictionary above.
+            return tf.io.parse_single_example(example_proto, feature_description)
+
+        return raw_dataset.map(_parse_image_function)
 
     @staticmethod
     def reannotate_ids(tf_records):

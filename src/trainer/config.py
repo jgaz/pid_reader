@@ -16,8 +16,8 @@ MODELS_DIRECTORY = os.path.join(
     os.path.dirname(os.path.dirname(SRC_PATH)), "data_trainer"
 )
 TRAINED_MODELS_PATH = os.path.join(SRC_PATH, MODELS_DIRECTORY)
-GENERATOR_PATH = os.path.join(SRC_PATH, "../../generator/")
-GENERATOR_TF_PATH = os.path.join(GENERATOR_PATH, "../data_generator/tf/")
+GENERATOR_PATH = os.path.join(SRC_PATH, "../generator/")
+GENERATOR_TF_PATH = os.path.join(GENERATOR_PATH, "../../data_generator/tf/")
 GENERATOR_METADATA_FILE = "training_metadata.yaml"
 
 LOGGING_LEVEL = logging.INFO

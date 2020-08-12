@@ -7,7 +7,7 @@ from random import shuffle
 from typing import List
 from PIL import Image
 from generator.config import SYMBOL_DEBUG, LOGGING_LEVEL, CPU_COUNT
-from generator.generate_tensorflow import generate_train_dataset
+from generator.tensorflow_generation import generate_train_dataset
 from generator.metadata import (
     SymbolStorage,
     BlockedSymbolsStorage,
