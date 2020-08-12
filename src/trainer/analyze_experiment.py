@@ -15,9 +15,8 @@ from generator.metadata import TensorflowStorage
 from trainer.config import (
     GENERATOR_TF_PATH,
     TRAINED_MODELS_PATH,
-    GENERATOR_METADATA_FILE,
 )
-from trainer.data import read_data
+from trainer.data import DataIngestorBackbone
 
 
 def confusion_matrix(experiment_id: str):
@@ -94,7 +93,8 @@ def load_data(
     experiment_id: str, folder: str, number_of_batches: int = 10, batch_size: int = 32
 ) -> Tuple[tf.data.Dataset, List[int]]:
     validation_data_folder = os.path.join(GENERATOR_TF_PATH, experiment_id, folder)
-    validation_dataset: tf.data.Dataset = read_data(
+    ingestor = DataIngestorBackbone()
+    validation_dataset: tf.data.Dataset = ingestor.read_data(
         validation_data_folder, is_training=False, batch_size=batch_size
     )
 

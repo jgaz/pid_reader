@@ -12,48 +12,8 @@ logger = logging.getLogger(__name__)
 logger.setLevel(LOGGING_LEVEL)
 
 
-def get_or_create_dataset(
-    workspace: Workspace, blob_storage_paths: List[str], dataset_name: str
-) -> Dataset:
-
-    try:
-        return Dataset.get_by_name(workspace=workspace, name=f"{dataset_name}")
-    except Exception:
-        logger.info(f"Registering {dataset_name} with {len(blob_storage_paths)} files.")
-        dataset = Dataset.File.from_files(path=blob_storage_paths)
-        return dataset.register(
-            workspace=workspace,
-            name=dataset_name,
-            description="training and test dataset",
-            create_new_version=True,
-        )
-
-
-def read_training_metadata(training_path: str):
-    yaml_file_path = os.path.join(training_path, "training_metadata.yaml")
-    with open(yaml_file_path, "r") as file:
-        training_metadata = yaml.full_load(file)
-    return training_metadata
-
-
-def read_data(
-    data_folder: str, is_training: bool = True, batch_size: int = 8
-) -> tf.data.Dataset:
-    path = os.path.join(data_folder, "*.tfrecord")
-    files_dataset = tf.data.Dataset.list_files(path)
-    ds: tf.data.Dataset = tf.data.TFRecordDataset(
-        files_dataset,
-        compression_type=None,
-        buffer_size=None,  # Set it if you need a buffer I/O saving
-        num_parallel_reads=None,  # If IO bound, set this > 1
-    )
-
-    if is_training:
-        ds = ds.shuffle(100)
-        ds = ds.repeat()
-
-    # Map from example into viable fit input
-    def _decode_record(record):
+class DataIngestorBackbone:
+    def decode_record(self, record):
         feature = {
             "image/filename": tf.io.FixedLenFeature((), tf.string),
             "image/format": tf.io.FixedLenFeature((), tf.string),
@@ -89,7 +49,7 @@ def read_data(
                     )
         return parsed_tensors
 
-    def _normalize_image(image):
+    def normalize_image(self, image):
         """Normalize the image to zero mean and unit variance."""
         image = tf.image.convert_image_dtype(image, dtype=tf.float32)
         offset = tf.constant([0.485])
@@ -103,27 +63,70 @@ def read_data(
         image /= scale
         return image
 
-    def _decode_image(record):
+    def decode_image(self, record):
         """Decodes the image and set its static shape."""
         image = tf.io.decode_png(record["image/encoded"], channels=1)
-        image = _normalize_image(image)
-        # image.set_shape([record['image/width'], record['image/height'], 1])
+        image = self.normalize_image(image)
         return image
 
-    def _select_data_from_record(record):
-        x = _decode_image(record=record)
+    def _select_data_from_record(self, record):
+        x = self.decode_image(record=record)
         y = record["image/object/class/label"]
-        return (x, y)
+        return x, y
 
-    ds = ds.map(_decode_record, num_parallel_calls=tf.data.experimental.AUTOTUNE)
-    ds = ds.map(
-        _select_data_from_record, num_parallel_calls=tf.data.experimental.AUTOTUNE
-    )
+    def read_data(
+        self, data_folder: str, is_training: bool = True, batch_size: int = 8
+    ) -> tf.data.Dataset:
+        path = os.path.join(data_folder, "*.tfrecord")
+        files_dataset = tf.data.Dataset.list_files(path)
+        ds: tf.data.Dataset = tf.data.TFRecordDataset(
+            files_dataset,
+            compression_type=None,
+            buffer_size=None,  # Set it if you need a buffer I/O saving
+            num_parallel_reads=None,  # If IO bound, set this > 1
+        )
 
-    if batch_size > 0:
-        ds = ds.batch(batch_size, drop_remainder=is_training)
-    ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
-    return ds
+        if is_training:
+            ds = ds.shuffle(100)
+            ds = ds.repeat()
+
+        # Map from example into viable fit input
+        ds = ds.map(
+            self.decode_record, num_parallel_calls=tf.data.experimental.AUTOTUNE
+        )
+        ds = ds.map(
+            self._select_data_from_record,
+            num_parallel_calls=tf.data.experimental.AUTOTUNE,
+        )
+
+        if batch_size > 0:
+            ds = ds.batch(batch_size, drop_remainder=is_training)
+        ds = ds.prefetch(tf.data.experimental.AUTOTUNE)
+        return ds
+
+
+def get_or_create_dataset(
+    workspace: Workspace, blob_storage_paths: List[str], dataset_name: str
+) -> Dataset:
+
+    try:
+        return Dataset.get_by_name(workspace=workspace, name=f"{dataset_name}")
+    except Exception:
+        logger.info(f"Registering {dataset_name} with {len(blob_storage_paths)} files.")
+        dataset = Dataset.File.from_files(path=blob_storage_paths)
+        return dataset.register(
+            workspace=workspace,
+            name=dataset_name,
+            description="training and test dataset",
+            create_new_version=True,
+        )
+
+
+def read_training_metadata(training_path: str):
+    yaml_file_path = os.path.join(training_path, "training_metadata.yaml")
+    with open(yaml_file_path, "r") as file:
+        training_metadata = yaml.full_load(file)
+    return training_metadata
 
 
 def show_sample(ds: tf.data.Dataset):

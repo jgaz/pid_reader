@@ -6,7 +6,7 @@ import os
 import tensorflow as tf
 import tensorflow.keras as tfkeras
 
-from trainer.data import read_training_metadata, read_data
+from trainer.data import read_training_metadata, read_data, DataIngestorBackbone
 
 from trainer.model import ModelFactory
 
@@ -69,11 +69,13 @@ if __name__ == "__main__":
 
     # Adjust steps per epoch to the total training samples we have
     steps_per_epoch = training_samples // (BATCH_SIZE * epochs)
-    training_dataset: tf.data.Dataset = read_data(
+    ingestor = DataIngestorBackbone()
+    training_dataset: tf.data.Dataset = ingestor.read_data(
         data_folder, is_training=True, batch_size=BATCH_SIZE
     )
     validation_data_folder = os.path.join(data_folder, "validation/")
-    validation_dataset: tf.data.Dataset = read_data(
+    ingestor = DataIngestorBackbone()
+    validation_dataset: tf.data.Dataset = ingestor.read_data(
         validation_data_folder, is_training=False, batch_size=BATCH_SIZE
     )
 
