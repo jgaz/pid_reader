@@ -23,7 +23,15 @@ repos:
         rev: v0.770
         hooks:
         -   id: mypy
-
+            name: mypy-generator
+            files: ^src/generator/
+            entry: mypy src/generator/
+            pass_filenames: false
+        -   id: mypy
+            name: mypy-trainer
+            files: ^src/trainer/
+            entry: mypy src/trainer/
+            pass_filenames: false
     -   repo: https://gitlab.com/PyCQA/flake8
         rev: 3.7.9
         hooks:
