@@ -10,9 +10,6 @@ from tensorflow.keras.models import load_model
 import tensorflow as tf
 from trainer.config import MODELS_DIRECTORY
 from trainer.data import DataIngestorBackbone
-from trainer.models.official.vision.image_classification.efficientnet.efficientnet_model import (
-    EfficientNet,
-)
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run model inference in EfficientNet")
@@ -31,19 +28,13 @@ if __name__ == "__main__":
     model_path = os.path.join(
         MODELS_DIRECTORY, experiment_id, experiment_id, "model/best_checkpoint"
     )
-    model: EfficientNet = load_model(model_path)
+    model = load_model(model_path)
 
     image = imread(image_file)
     plt.figure(figsize=(5, 5))
     plt.imshow(image)
     plt.show()
 
-    """
-    image_size = model.input_shape[1]
-    x = center_crop_and_resize(image, image_size=image_size)
-    x = preprocess_input(image)
-    x = np.expand_dims(x, 0)
-    """
     di = DataIngestorBackbone()
     with tf.io.gfile.GFile(image_file, "rb") as fid:
         original_encoded_img = fid.read()

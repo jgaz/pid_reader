@@ -1,5 +1,8 @@
+import os
+
 import tensorflow.keras as tfkeras
 from efficientnet.model import EfficientNet
+from trainer.data import read_training_metadata
 import collections
 
 
@@ -174,3 +177,36 @@ class ModelFactory:
             ),
         ]
         return default_blocks_args
+
+
+class ObjectDetectionConfigurator:
+    def update_config(
+        self, config_path: str, training_path: str, backbone_path: str
+    ) -> str:
+        with open(config_path, "r") as config_file:
+            config = config_file.read()
+
+        variables_to_setup = self.get_variables(training_path, backbone_path)
+        for key, value in variables_to_setup.items():
+            config = config.replace(f"##{key}##", str(value))
+
+        out_file_path = f"{config_path}.custom"
+        with open(f"{config_path}.custom", "w") as config_file:
+            config_file.write(config)
+        return out_file_path
+
+    def get_variables(self, training_path: str, backbone_path: str):
+        training_metadata = read_training_metadata(training_path)
+        variables = {
+            "NUM_CLASSES": int(training_metadata["num_classes"]),
+            "DIAGRAM_SIZE": 500,  # Must match backbone training data??
+            "BATCH_SIZE": 16,
+            "TOTAL_STEPS": int(training_metadata["num_images_training"]) // 32,
+            "PATH_LABEL_MAP": os.path.join(training_path, "label_map.pbtxt"),
+            "TRAINING_PATH": os.path.join(training_path, "?????-of-000??.tfrecord"),
+            "VALIDATION_PATH": os.path.join(
+                training_path, "validation", "validation.tfrecord"
+            ),
+            "BACKBONE_PATH": backbone_path,
+        }
+        return variables

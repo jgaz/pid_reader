@@ -6,7 +6,7 @@ from azureml.core import Dataset, Workspace
 import tensorflow as tf
 import logging
 
-from trainer.config import LOGGING_LEVEL
+from trainer.config import LOGGING_LEVEL, GENERATOR_METADATA_FILE
 
 logger = logging.getLogger(__name__)
 logger.setLevel(LOGGING_LEVEL)
@@ -132,7 +132,7 @@ def get_or_create_dataset(
 
 
 def read_training_metadata(training_path: str):
-    yaml_file_path = os.path.join(training_path, "training_metadata.yaml")
+    yaml_file_path = os.path.join(training_path, GENERATOR_METADATA_FILE)
     with open(yaml_file_path, "r") as file:
         training_metadata = yaml.full_load(file)
     return training_metadata

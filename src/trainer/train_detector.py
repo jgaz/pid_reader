@@ -8,12 +8,8 @@ import logging
 import os
 import subprocess
 from shutil import copyfile
-
-from typing import Dict
-
 from trainer.config import LOGGING_LEVEL
-from trainer.data import read_training_metadata
-
+from trainer.model import ObjectDetectionConfigurator
 
 logger = logging.getLogger(__name__)
 logger.setLevel(LOGGING_LEVEL)
@@ -41,39 +37,6 @@ def install_tf2_object_detection():
         )
         command = "pip install ."
         subprocess.run(command, check=True, cwd="models/research/", shell=True)
-
-
-def update_config(config_path: str, variables_to_setup: Dict[str, str]) -> str:
-    with open(config_path, "r") as config_file:
-        config = config_file.read()
-
-    for key, value in variables_to_setup.items():
-        config = config.replace(f"##{key}##", str(value))
-
-    out_file_path = f"{config_path}.custom"
-    with open(f"{config_path}.custom", "w") as config_file:
-        config_file.write(config)
-    return out_file_path
-
-
-def get_variables(training_path: str, backbone_path: str):
-    """
-    TODO: cosine_decay_learning_rate figure out how to tweak this
-    """
-    training_metadata = read_training_metadata(training_path)
-    variables = {
-        "NUM_CLASSES": int(training_metadata["num_classes"]),
-        "DIAGRAM_SIZE": 500,  # Must match backbone training data??
-        "BATCH_SIZE": 16,
-        "TOTAL_STEPS": int(training_metadata["num_images_training"]) // 32,
-        "PATH_LABEL_MAP": os.path.join(training_path, "label_map.pbtxt"),
-        "TRAINING_PATH": os.path.join(training_path, "?????-of-000??.tfrecord"),
-        "VALIDATION_PATH": os.path.join(
-            training_path, "validation", "validation.tfrecord"
-        ),
-        "BACKBONE_PATH": backbone_path,
-    }
-    return variables
 
 
 if __name__ == "__main__":
@@ -135,9 +98,9 @@ if __name__ == "__main__":
     os.makedirs(model_dir, exist_ok=True)
 
     # Update config file information
+    odc = ObjectDetectionConfigurator()
     path_config = "./deploy/configuration_detector.config"
-    config_variables = get_variables(training_folder, backbone_folder)
-    config_file_path = update_config(path_config, config_variables)
+    config_file_path = odc.update_config(path_config, training_folder, backbone_folder)
 
     object_detection_main_file_path = os.path.join(
         object_detection_path, "model_main_tf2.py"
