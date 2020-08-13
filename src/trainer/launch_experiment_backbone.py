@@ -3,9 +3,9 @@ import logging
 import os
 
 from azureml.train.dnn import TensorFlow
-from azureml.core import Experiment, Run
+from azureml.core import Experiment, Run, Environment
 
-from trainer.compute import get_or_create_workspace
+from trainer.compute import get_or_create_workspace, get_or_create_detector_environment
 from trainer.config import (
     SUBSCRIPTION_ID,
     RESOURCE_GROUP,
@@ -22,18 +22,32 @@ logger.setLevel(LOGGING_LEVEL)
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Run a training experiment in AzureML")
+    parser = argparse.ArgumentParser(
+        description="Run the backbone training experiment in AzureML"
+    )
     parser.add_argument("experiment_id", type=str, help="""The experiment id""")
     parser.add_argument("--epochs", type=str, default=10)
+    parser.add_argument(
+        "--run_local",
+        type=bool,
+        help="Whether to run the computation in local computer",
+        default=False,
+    )
 
     args = parser.parse_args()
-
     experiment_id = args.experiment_id
     epochs = args.epochs
+    run_local = args.run_local
+
+    compute_target = GPU_CLUSTER_NAME
+    if run_local:
+        compute_target = "local"
 
     ws = get_or_create_workspace(
         SUBSCRIPTION_ID, RESOURCE_GROUP, WORKSPACE_NAME, WORKSPACE_REGION
     )
+
+    env: Environment = get_or_create_detector_environment(ws, force_creation=True)
 
     # Get the list of files from the blob
     ab = AzureBlobCloudStorage()
@@ -56,21 +70,14 @@ if __name__ == "__main__":
         "--epochs": f"{epochs}",
     }
 
-    # Estimator help: https://github.com/Azure/MachineLearningNotebooks/tree/master/how-to-use-azureml/training-with-deep-learning
     script_folder = "./"
     estimator = TensorFlow(
         source_directory=script_folder,
-        compute_target=GPU_CLUSTER_NAME,
+        compute_target=compute_target,
         script_params=script_params,
         entry_script="train_backbone.py",
-        use_gpu=True,
-        pip_packages=[
-            "azureml-dataprep[fuse]",
-            "tensorflow-gpu==2.2.0",
-            "pyyaml",
-            "git+https://github.com/qubvel/efficientnet@e9fdd43857785fe5ccf3863915dcaf618b86849f#egg=efficientnet",
-        ],
-        conda_packages=["cudatoolkit=10.1"],  # This allows Tensorflow 2.2
+        framework_version="2.1",
+        environment_definition=env,
     )
 
     run: Run = experiment.submit(estimator)
