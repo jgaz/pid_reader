@@ -1,11 +1,11 @@
 import argparse
 import logging
 
-from compute import (
+from trainer.compute import (
     get_or_create_workspace,
     get_or_create_gpu_cluster,
 )
-from config import (
+from trainer.config import (
     SUBSCRIPTION_ID,
     RESOURCE_GROUP,
     WORKSPACE_NAME,
