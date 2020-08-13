@@ -1,5 +1,5 @@
 """
-Adapted from: https://colab.research.google.com/drive/1sLqFKVV94wm-lglFq_0kGo2ciM0kecWD#scrollTo=-Ycfl7rnDT1D&uniqifier=1
+Adapted from: https://github.com/tensorflow/models/blob/master/research/object_detection/colab_tutorials/inference_tf2_colab.ipynb
 """
 import argparse
 from io import BytesIO
@@ -10,21 +10,24 @@ import os
 from PIL import Image
 from generator.metadata import TensorflowStorage
 from object_detection.builders import model_builder
-
-import matplotlib.pyplot as plt
 import tensorflow as tf
 from trainer.config import MODELS_DIRECTORY, GENERATOR_TF_PATH
 from trainer.model import ObjectDetectionConfigurator
 from object_detection.utils import config_util, label_map_util
 from object_detection.utils import visualization_utils as viz_utils
 from object_detection import config_checkpoint
+import matplotlib
+import matplotlib.pyplot as plt
+
+matplotlib.use("TkAgg")
 
 
 def load_image_into_numpy_array(path):
     img_data = tf.io.gfile.GFile(path, "rb").read()
     image = Image.open(BytesIO(img_data))
+    image = image.convert("RGB")
     (im_width, im_height) = image.size
-    return np.array(image.getdata()).reshape((im_height, im_width, 1)).astype(np.uint8)
+    return np.array(image.getdata()).reshape((im_height, im_width, 3)).astype(np.uint8)
 
 
 if __name__ == "__main__":
