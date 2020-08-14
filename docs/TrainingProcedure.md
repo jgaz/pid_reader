@@ -32,8 +32,19 @@ python generator/generate_set_diagrams.py \
 This takes around 1h when cold starting the environment, mainly
 due to creating the custom docker image and the cluster allocation.
 
-`python launch_experiment_backbone.py <datasetId> --epochs 40`
+You should pass the number of epochs, bear in mind that the learning rate falls
+exponentially with the number of epochs. A typical good value for 700K images is
+20-30 epochs.
+```
+# Train for 40 epochs,
+python trainer/launch_experiment_backbone.py <experimentId> --epochs 40
+# Download the trained model
+python trainer/download_experiment_files.py <experimentId>
+# Perform inference on an image
+python trainer/inference_backbone.py --experiment_id <experimentId> \
+    --image_file <image_file>
+```
 
 ## Detector training
 
-`python launch_experiment_detector.py --backbone_experiment_id <backboneId>  <datasetId>`
+`python trainer/launch_experiment_detector.py --backbone_experiment_id <backboneId>  <experimentId>`
