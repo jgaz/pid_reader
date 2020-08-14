@@ -1,3 +1,5 @@
+import os
+
 from azureml.core import Workspace, Environment
 from azureml.core.compute import ComputeTarget, AmlCompute
 from azureml.core.compute_target import ComputeTargetException
@@ -5,7 +7,7 @@ import logging
 
 from azureml.exceptions import ProjectSystemException
 
-from trainer.config import ENVIRONMENT_NAME_DETECTOR
+from trainer.config import ENVIRONMENT_NAME_DETECTOR, SRC_PATH
 
 logger = logging.getLogger(__name__)
 
@@ -76,7 +78,9 @@ def get_or_create_detector_environment(
         env = Environment(workspace=ws, name=environment_name)
         env.docker.enabled = True
         env.docker.base_image = None
-        env.docker.base_dockerfile = open("./Dockerfile.detector", "r").read()
+        env.docker.base_dockerfile = open(
+            os.path.join(SRC_PATH, "Dockerfile.detector"), "r"
+        ).read()
         env.python.user_managed_dependencies = True
         env.register(workspace=ws)
         return env

@@ -106,7 +106,7 @@ class DataIngestorBackbone:
             ds = ds.shuffle(100)
             ds = ds.repeat()
 
-        self.transform_and_filter(ds)
+        ds = self.transform_and_filter(ds)
 
         if batch_size > 0:
             ds = ds.batch(batch_size, drop_remainder=is_training)

@@ -64,7 +64,8 @@ if __name__ == "__main__":
     script_params = {
         "--data_folder": dataset.as_named_input(dataset_name).as_download(),
         "--extra_path": os.path.join(
-            f"https/{ab.storage_account}.blob.core.windows.net/pub", f"{experiment_id}/"
+            f"https%3A/%2F{ab.storage_account}.blob.core.windows.net/pub",
+            f"{experiment_id}/",  # Seems a bug in Azure SDK
         ),
         "--experiment_id": f"{experiment_id}",
         "--epochs": f"{epochs}",
@@ -75,7 +76,7 @@ if __name__ == "__main__":
         source_directory=script_folder,
         compute_target=compute_target,
         script_params=script_params,
-        entry_script="train_backbone.py",
+        entry_script="trainer/train_backbone.py",
         framework_version="2.1",
         environment_definition=env,
     )

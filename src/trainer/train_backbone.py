@@ -3,10 +3,12 @@ Train a model
 """
 import argparse
 import os
+from time import sleep
+
 import tensorflow as tf
 import tensorflow.keras as tfkeras
 
-from trainer.data import read_training_metadata, read_data, DataIngestorBackbone
+from trainer.data import read_training_metadata, DataIngestorBackbone
 
 from trainer.model import ModelFactory
 
@@ -39,6 +41,7 @@ if __name__ == "__main__":
     epochs = int(args.epochs)
 
     data_folder = os.path.join(data_folder, extra_path)
+
     training_metadata = read_training_metadata(data_folder)
 
     # Strategy to train in multiple GPUs
