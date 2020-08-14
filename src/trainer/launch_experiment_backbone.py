@@ -64,7 +64,7 @@ if __name__ == "__main__":
     script_params = {
         "--data_folder": dataset.as_named_input(dataset_name).as_download(),
         "--extra_path": os.path.join(
-            f"https%3A/%2F{ab.storage_account}.blob.core.windows.net/pub",
+            f"https/{ab.storage_account}.blob.core.windows.net/pub",
             f"{experiment_id}/",  # Seems a bug in Azure SDK
         ),
         "--experiment_id": f"{experiment_id}",

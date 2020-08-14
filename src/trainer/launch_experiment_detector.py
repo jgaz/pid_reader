@@ -94,7 +94,7 @@ if __name__ == "__main__":
         source_directory=script_folder,
         compute_target=compute_target,
         script_params=script_params,
-        entry_script="train_detector.py",
+        entry_script="trainer/train_detector.py",
         framework_version="2.1",
         environment_definition=env,
     )

@@ -7,6 +7,7 @@ import argparse
 import logging
 import os
 import subprocess
+import sys
 from shutil import copyfile
 from trainer.config import LOGGING_LEVEL
 from trainer.model import ObjectDetectionConfigurator
@@ -99,7 +100,7 @@ if __name__ == "__main__":
 
     # Update config file information
     odc = ObjectDetectionConfigurator()
-    path_config = "./deploy/configuration_detector.config"
+    path_config = "./trainer/deploy/configuration_detector.config"
     config_file_path = odc.update_config(path_config, training_folder, backbone_folder)
 
     object_detection_main_file_path = os.path.join(
@@ -116,4 +117,6 @@ if __name__ == "__main__":
     )
 
     print(command)
-    subprocess.run(command.split(" "), check=True)
+    output = subprocess.run(
+        command, shell=True, text=True, stdout=sys.stdout, stderr=subprocess.STDOUT
+    )

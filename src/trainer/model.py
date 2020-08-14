@@ -199,9 +199,11 @@ class ObjectDetectionConfigurator:
         training_metadata = read_training_metadata(training_path)
         variables = {
             "NUM_CLASSES": int(training_metadata["num_classes"]),
-            "DIAGRAM_SIZE": 500,  # Must match backbone training data??
+            "DIAGRAM_SIZE": int(
+                training_metadata["height"]
+            ),  # Must match backbone training data
             "BATCH_SIZE": 16,
-            "TOTAL_STEPS": int(training_metadata["num_images_training"]) // 32,
+            "TOTAL_STEPS": int(training_metadata["num_images_training"]) // 16,
             "PATH_LABEL_MAP": os.path.join(training_path, "label_map.pbtxt"),
             "TRAINING_PATH": os.path.join(training_path, "?????-of-000??.tfrecord"),
             "VALIDATION_PATH": os.path.join(
