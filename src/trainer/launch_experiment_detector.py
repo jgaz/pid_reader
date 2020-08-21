@@ -79,8 +79,8 @@ if __name__ == "__main__":
     # Create the experiment
     experiment_name = f"detector_{experiment_id}"
     experiment = Experiment(ws, name=experiment_name)
-
-    blob_storage_path = f"https/{ab.storage_account}.blob.core.windows.net/pub"
+    # Weird Azure error with folder names
+    blob_storage_path = f"https%3A/%2F{ab.storage_account}.blob.core.windows.net/pub"
 
     script_params = {
         "--training_data_path": dataset.as_named_input(dataset_name).as_download(),

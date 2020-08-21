@@ -11,9 +11,9 @@ from PIL import Image
 from generator.metadata import TensorflowStorage
 from object_detection.builders import model_builder
 import tensorflow as tf
-from trainer.config import MODELS_DIRECTORY, GENERATOR_TF_PATH
+from trainer.config import MODELS_DIRECTORY, GENERATOR_TF_PATH, SRC_PATH
 from trainer.model import ObjectDetectionConfigurator
-from object_detection.utils import config_util, label_map_util
+from object_detection.utils import config_util
 from object_detection.utils import visualization_utils as viz_utils
 from object_detection import config_checkpoint
 import matplotlib
@@ -65,7 +65,7 @@ if __name__ == "__main__":
 
     # recover our saved model
     odc = ObjectDetectionConfigurator()
-    path_config = "./deploy/configuration_detector.config"
+    path_config = os.path.join(SRC_PATH, "deploy/configuration_detector.config")
     training_path = os.path.join(GENERATOR_TF_PATH, experiment_id)
     backbone_path = os.path.join(
         MODELS_DIRECTORY, backbone_id, backbone_id, "model/best_checkpoint"

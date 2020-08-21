@@ -86,8 +86,6 @@ if __name__ == "__main__":
 
     # Check for TF2 object detection API or install
     install_tf2_object_detection()
-
-    # Make sure training data is there
     root_folder = os.path.join(training_data_path, extra_path)
     training_folder = os.path.join(root_folder, experiment_id)
     if backbone_path == "":

@@ -46,5 +46,13 @@ python trainer/inference_backbone.py --experiment_id <experimentId> \
 ```
 
 ## Detector training
+Make sure that the image sizes match between the backbone and the detector,
+have a look at the detector paper for suitable sizes.
 
-`python trainer/launch_experiment_detector.py --backbone_experiment_id <backboneId>  <experimentId>`
+```
+python trainer/launch_experiment_detector.py --backbone_experiment_id <backboneId>  <experimentId>
+python inference_detector.py --experiment_id <experimentId> \
+    --backbone_id <backboneExperimentId> \
+    --checkpoint ckpt-2080 \
+    --image_file <YourImage>
+```
