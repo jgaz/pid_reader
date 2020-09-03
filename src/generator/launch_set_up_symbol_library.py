@@ -15,10 +15,7 @@ if __name__ == "__main__":
         description="Create the symbol library used for the generator"
     )
     parser.add_argument(
-        "--ccf_filename", type=str, nargs=1, help="ccf filename to import"
-    )
-    parser.add_argument(
-        "--cad_conversion", type=bool, nargs=1, help="ccf filename to import"
+        "--ccf_filename", type=str, required=True, help="ccf filename to import"
     )
 
     args = parser.parse_args()
@@ -38,8 +35,3 @@ if __name__ == "__main__":
                 logger.error(e)
         storage = SymbolStorage()
         storage.save(symbols_with_path)
-
-    elif args.cad_conversion:
-        storage = SymbolStorage()
-        symbols_stored = storage.data.to_dict("records")
-        dxf_to_png(symbols_stored)
