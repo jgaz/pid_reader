@@ -1,14 +1,21 @@
 import os
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 import tensorflow.compat.v1 as tf
 import yaml
 import io
+import pickle
+import shutil
 import hashlib
+import json
 import PIL
+import logging
 
-from trainer.config import GENERATOR_TF_PATH, GENERATOR_METADATA_FILE
-from generator.metadata import JsonTrainingObject
+from generator.config import GENERATOR_METADATA_FILE, DIAGRAM_PATH, DIAGRAM_CLASSES_FILE
+from generator.metadata import JsonTrainingObject, SymbolData
 from generator.symbol import GenericSymbol
+from trainer.config import GENERATOR_TF_PATH
+
+logger = logging.getLogger(__name__)
 
 
 class TensorflowStorage:
@@ -212,3 +219,66 @@ class TensorflowStorage:
             GENERATOR_TF_PATH, experiment_id, GENERATOR_METADATA_FILE
         )
         return yaml.full_load(open(training_metadata_file, "r"))
+
+
+class TrainingDatasetLabelDictionaryStorage:
+    @staticmethod
+    def save(valid_symbols: List[SymbolData]):
+        logger.info("Saving symbols dictionary")
+        valid_symbols_dict = {}
+        for i, symbol in enumerate(valid_symbols):
+            valid_symbols_dict[symbol.name] = i + 1
+        file_path = os.path.join(DIAGRAM_PATH, DIAGRAM_CLASSES_FILE)
+        json.dump(valid_symbols_dict, open(file_path, "w"))
+
+    @staticmethod
+    def get(data_path: str) -> Dict[str, int]:
+        """
+        Get the object names and Ids
+        :param data_path: path of the class file
+        :return:
+        """
+        classes_filename = os.path.join(data_path, DIAGRAM_CLASSES_FILE)
+        dictionary = json.load(open(classes_filename, "r"))
+        return dictionary
+
+
+class DiagramSymbolsStorage:
+    """
+    Storage of the symbol metadata: position, type, etc...
+    """
+
+    PATH = DIAGRAM_PATH
+
+    def _get_path(self, hash: str):
+        return os.path.join(DiagramSymbolsStorage.PATH, f"Diagram_{hash}.pickle")
+
+    def save(self, hash: str, symbols: List[GenericSymbol]):
+        pickle.dump(symbols, open(self._get_path(hash), "wb"))
+
+    def load(self, hash: str = None, filename: str = None):
+        if filename:
+            return pickle.load(open(filename, "rb"))
+        elif hash:
+            return pickle.load(open(self._get_path(hash), "rb"))
+
+
+class DiagramStorage:
+    """
+    Store the diagram created
+    """
+
+    def store_image(self, dss: DiagramSymbolsStorage, image_diagram, diagram_symbols):
+        image: PIL.Image = image_diagram.convert("1")
+        hash = hashlib.md5(image.tobytes()).hexdigest()
+        image.save(os.path.join(DIAGRAM_PATH, f"Diagram_{hash}.png"))
+        # Store symbols too
+        dss.save(hash, diagram_symbols)
+
+    @staticmethod
+    def clear():
+        """
+        Clear the directory where diagrams have been generated
+        """
+        shutil.rmtree(DIAGRAM_PATH)
+        os.makedirs(DIAGRAM_PATH)

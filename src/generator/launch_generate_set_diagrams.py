@@ -7,14 +7,11 @@ from random import shuffle
 from typing import List
 from PIL import Image
 from generator.config import SYMBOL_DEBUG, LOGGING_LEVEL, CPU_COUNT
-from generator.tensorflow_generation import generate_train_dataset
+from generator.launch_tensorflow_generation import generate_train_dataset
 from generator.metadata import (
     SymbolStorage,
     BlockedSymbolsStorage,
-    DiagramSymbolsStorage,
-    DiagramStorage,
     SymbolData,
-    TrainingDatasetLabelDictionaryStorage,
 )
 from generator.symbol import (
     GenericSymbol,
@@ -24,6 +21,12 @@ from generator.symbol import (
 )
 import logging
 import multiprocessing
+
+from generator.training_storage import (
+    DiagramStorage,
+    DiagramSymbolsStorage,
+    TrainingDatasetLabelDictionaryStorage,
+)
 
 logging.basicConfig(level=LOGGING_LEVEL)
 logger = logging.getLogger(__name__)

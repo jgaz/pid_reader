@@ -1,16 +1,9 @@
-import hashlib
-import json
 import os
-import pickle
-import shutil
-
-import PIL
 import pandas as pd
 from dataclasses import dataclass
-from typing import Tuple, List, TypedDict, Any, Dict
-from generator.config import METADATA_PATH, DIAGRAM_PATH, DIAGRAM_CLASSES_FILE
+from typing import Tuple, List, TypedDict, Any
+from generator.config import METADATA_PATH
 import logging
-from generator.symbol import GenericSymbol
 import csv
 
 logger = logging.getLogger(__name__)
@@ -103,59 +96,3 @@ class BlockedSymbolsStorage:
     ):
         set_blocked_symbols = set([x.upper() for x in blocked_symbols])
         return [s for s in symbols if s.name.upper() not in set_blocked_symbols]
-
-
-class DiagramSymbolsStorage:
-    """
-    Storage of the symbol metadata: position, type, etc...
-    """
-
-    PATH = DIAGRAM_PATH
-
-    def _get_path(self, hash: str):
-        return os.path.join(DiagramSymbolsStorage.PATH, f"Diagram_{hash}.pickle")
-
-    def save(self, hash: str, symbols: List[GenericSymbol]):
-        pickle.dump(symbols, open(self._get_path(hash), "wb"))
-
-    def load(self, hash: str = None, filename: str = None):
-        if filename:
-            return pickle.load(open(filename, "rb"))
-        elif hash:
-            return pickle.load(open(self._get_path(hash), "rb"))
-
-
-class DiagramStorage:
-    def store_image(self, dss: DiagramSymbolsStorage, image_diagram, diagram_symbols):
-        image: PIL.Image = image_diagram.convert("1")
-        hash = hashlib.md5(image.tobytes()).hexdigest()
-        image.save(os.path.join(DIAGRAM_PATH, f"Diagram_{hash}.png"))
-        # Store symbols too
-        dss.save(hash, diagram_symbols)
-
-    @staticmethod
-    def clear():
-        shutil.rmtree(DIAGRAM_PATH)
-        os.makedirs(DIAGRAM_PATH)
-
-
-class TrainingDatasetLabelDictionaryStorage:
-    @staticmethod
-    def save(valid_symbols: List[SymbolData]):
-        logger.info("Saving symbols dictionary")
-        valid_symbols_dict = {}
-        for i, symbol in enumerate(valid_symbols):
-            valid_symbols_dict[symbol.name] = i + 1
-        file_path = os.path.join(DIAGRAM_PATH, DIAGRAM_CLASSES_FILE)
-        json.dump(valid_symbols_dict, open(file_path, "w"))
-
-    @staticmethod
-    def get(data_path: str) -> Dict[str, int]:
-        """
-        Get the object names and Ids
-        :param data_path: path of the class file
-        :return:
-        """
-        classes_filename = os.path.join(data_path, DIAGRAM_CLASSES_FILE)
-        dictionary = json.load(open(classes_filename, "r"))
-        return dictionary
