@@ -1,7 +1,6 @@
 import argparse
 
-from generator.metadata import TensorflowStorage
-
+from generator.training_storage import TensorflowStorage
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

@@ -8,7 +8,7 @@ import numpy as np
 import os
 
 from PIL import Image
-from generator.metadata import TensorflowStorage
+from generator.training_storage import TensorflowStorage
 from object_detection.builders import model_builder
 import tensorflow as tf
 from trainer.config import MODELS_DIRECTORY, GENERATOR_TF_PATH, SRC_PATH

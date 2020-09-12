@@ -10,7 +10,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 import yaml
-from generator.metadata import TensorflowStorage
+from generator.training_storage import TensorflowStorage
 
 from trainer.config import (
     GENERATOR_TF_PATH,
