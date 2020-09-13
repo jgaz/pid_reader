@@ -80,6 +80,7 @@ class SymbolStorage:
         formatters = {
             "name": lambda x: f"<image src='{PNG_SYMBOL_PATH}/225/{x}.png'><br>{x}"
         }
+        self.data.sort_values(["matter", "family", "name"], inplace=True)
         return self.data.to_html(formatters=formatters, escape=False)
 
 
