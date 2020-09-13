@@ -2,7 +2,7 @@ import os
 import pandas as pd
 from dataclasses import dataclass
 from typing import Tuple, List, TypedDict, Any
-from generator.config import METADATA_PATH
+from generator.config import METADATA_PATH, PNG_SYMBOL_PATH
 import logging
 import csv
 
@@ -75,6 +75,12 @@ class SymbolStorage:
 
     def get_dataframe(self):
         return self.data
+
+    def get_html_visualization(self):
+        formatters = {
+            "name": lambda x: f"<image src='{PNG_SYMBOL_PATH}/225/{x}.png'><br>{x}"
+        }
+        return self.data.to_html(formatters=formatters, escape=False)
 
 
 class BlockedSymbolsStorage:

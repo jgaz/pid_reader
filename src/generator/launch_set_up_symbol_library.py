@@ -3,9 +3,11 @@
 """
 import argparse
 import logging
+import os
 
 from generator.cad_converter import find_symbol_file, collect_dwg_file
 from generator.ccf_reader import parse_ccf_file
+from generator.config import METADATA_PATH
 from generator.metadata import SymbolStorage
 
 
@@ -35,3 +37,6 @@ if __name__ == "__main__":
                 logger.error(e)
         storage = SymbolStorage()
         storage.save(symbols_with_path)
+        html_doc = storage.get_html_visualization()
+        with open(os.path.join(METADATA_PATH, "symbols.html"), "w") as fout:
+            fout.write(html_doc)
