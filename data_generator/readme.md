@@ -1,71 +1,64 @@
-## DWG
+# Training generation
 
-Files: 2079
+## Symbol database
 
-Mainly:
-- ./STATOIL_STD_DWG/Statoil_STD_dwg/
-- ./STANDARD_COMPANY_V8I/Standard_Company_V8i/workspace/Company/
+The symbol database is stored in `symbols.csv` file, it is organized
+hierarchically in the following way:
 
-## DGN
+1. matter: this is the main grouping field, it can be used to generate
+training examples only with symbols of the wanted matters.
+2. family: subgroup of matter, right now it is not in use.
+3. name: this should be unique as the examples are labeled using the
+name. The symbols PNG files should be named after the value of this
+field: "name.png", the name is case sensitive.
 
-Files: 53
+Finally there is another field called description that is currently
+of no use.
 
-Mainly:
-- ./STANDARD_COMPANY_V8I/Standard_Company_V8i/workspace/
+### Blocking symbols
 
-## CEL
+If your database has symbols that you don't want to use for training,
+just put the names in the csv and they will be ignored.
 
-Files: 70
+### Text configuration
 
-Mainly:
-- ./STANDARD_COMPANY_V8I/Standard_Company_V8i/workspace/Company/Cell/
+Symbols are usually surrounded by text, some times the text is placed
+within the symbol, this file configures where should be put the text
+if the symbol allows it.
 
+The fields are:
+    - name: should match with name in the symbol database
+    - max_lines: maximum number of lines
+    - x: x coord of top left corner
+    - y: y coord of top left corner
+    - resol: resolution to use
 
+## Symbol files
 
-## Conversion path
+Symbols are stored in the folder `/symbol_libraries/png`.
+In this library you can find three folders containing the symbols in the
+different resolutions: 100, 225 and 600.
 
-Collect ccf files in list_of_symbols_ccf
+The format is PNG stored in Grayscale or black and white.
 
-Use [ODAFileConverter](https://www.opendesign.com/guestfiles/oda_file_converter)
-to convert from DWG to DXF (2007 ASCII DXF)
+## Training examples generation
 
-Convert to PDF
+The training examples are generated and stored in `data_generator/tf/<datasetID>`
+The dataset id is just an MD5 of a string with the number of examples and the matters selected
+to create the training set.
+
+The generation is a two step process:
+1. `launch_generate_set_diagrams.py` this will create all the diagrams and their metadata
+in `data_generator\diagrams` this folder will be cleared with the script start and then
+it will hold the number of examples required (one png file and one pickle with the metadata).
+2.  Finally this script will pack all the images and metadata into a suitable
+tensorflow record, the format is compatible with the training material for EfficientDet. The last step of
+this script is to push the content into a Azure Blob Storage.
+
+Example:
 ```bash
-find ./ -name '*.dwg' -exec cp {} ./dwg_library/  \;
-rm *.pdf && librecad dxf2pdf -a -k *.dxf
+launch_generate_set_diagrams.py  --number_diagrams 100000 \
+    --symbols_per_diagram 10 \
+    --diagram_matter P-Process,L-Piping \
+    --diagram_size 512 512
 ```
-
-Convert to PNG
-```bash
-gs -sDEVICE=png16m -dNOPAUSE -dBATCH -dSAFER -r300 -sOutputFile="./png/$filename.png" "$filename"
-```
-
-
-## Big diagrams conversion
-
-PDF -> PNG
-
-- 150 resolution.
-- 5000x3500 px.
-
-
-## Extract a list of symbols with an explanation
-
-`find ./ -name *.ccf -exec cat {} \;|grep -v '#' >list_of_symbols_ccf.txt`
-
-Folder structure of ./STATOIL_STD_DWG/Statoil_STD_dwg/ gives also a context to the found symbols
-
-
-## Symbols types
-
-### Symbols that contain text
-
-- ISCD-F00X: 5 text special spacing?
-- ISCD-R00x: 1 text
-- ISCD-S00x: 1-3 Text
-- STJI00x: 1-2 Text
-- STJM00x: 1-2 Text
-
-
-
-### Symbols that do not contain text
