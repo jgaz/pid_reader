@@ -17,14 +17,14 @@ from generator.config import (
     GENERATOR_LABEL_FILE,
 )
 import logging
-from generator.metadata import (
-    DiagramSymbolsStorage,
-    TensorflowStorage,
-    JsonTrainingObject,
-    TrainingDatasetLabelDictionaryStorage,
-)
+from generator.metadata import JsonTrainingObject
 import multiprocessing
 import tensorflow.compat.v1 as tf
+from generator.training_storage import (
+    DiagramSymbolsStorage,
+    TensorflowStorage,
+    TrainingDatasetLabelDictionaryStorage,
+)
 
 from trainer.ml_storage import AzureBlobCloudStorage
 

@@ -2,8 +2,10 @@ import unittest
 from pathlib import Path
 
 from generator.config import DIAGRAM_PATH
-from generator.metadata import TrainingDatasetLabelDictionaryStorage
-from generator.metadata import DiagramSymbolsStorage
+from generator.training_storage import (
+    TrainingDatasetLabelDictionaryStorage,
+    DiagramSymbolsStorage,
+)
 
 
 class TestGenerateSetDiagrams(unittest.TestCase):

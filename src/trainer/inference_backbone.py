@@ -3,7 +3,7 @@ import argparse
 import numpy as np
 import os
 
-from generator.metadata import TensorflowStorage
+from generator.training_storage import TensorflowStorage
 from skimage.io import imread
 import matplotlib.pyplot as plt
 from tensorflow.keras.models import load_model
